@@ -22,28 +22,23 @@ async def submit_claim(payload: ClaimSubmissionPayload):
     Submit a new return claim for fraud detection analysis
     
     This endpoint:
-    1. Receives claim data with KYC information
-    2. Links the claim to a verified user identity
+    1. Receives claim data with user ID
+    2. Links the claim to an existing user identity
     3. Calculates fraud risk score
     4. Stores the claim in the database
     5. Returns the analysis results
     """
     try:
         # Extract data from payload
-        kyc_data = payload.kyc_data
+        user_id = payload.user_id
         claim_context = payload.claim_context
         
-        # Generate KYC ID from email (in real implementation, this would come from KYC service)
-        # For demo purposes, we'll use a deterministic UUID based on email
-        kyc_id = uuid.uuid5(uuid.NAMESPACE_DNS, kyc_data.kyc_email)
-        
-        # Check if user exists, create if not
-        user = await customer_crud.get_user_by_kyc_id(kyc_id)
+        # Check if user exists
+        user = await customer_crud.get_user_by_kyc_id(user_id)
         if not user:
-            user = await customer_crud.create_user(
-                kyc_id=kyc_id,
-                full_name=kyc_data.full_name,
-                dob=kyc_data.dob.isoformat()
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with ID {user_id} not found"
             )
         
         # Verify store exists
@@ -56,21 +51,21 @@ async def submit_claim(payload: ClaimSubmissionPayload):
         
         # Calculate fraud risk score
         risk_score = fraud_service.calculate_risk_score(
-            user_id=kyc_id,
+            user_id=user_id,
             claim_data=claim_context.claim_data,
             email_at_store=claim_context.email_at_store,
             store_id=claim_context.store_id
         )
         
         # Determine if user should be flagged
-        should_flag = fraud_service.should_flag_user(risk_score, kyc_id)
+        should_flag = fraud_service.should_flag_user(risk_score, user_id)
         
         # Update user's risk score and flagged status
-        await customer_crud.update_user_risk_score(kyc_id, risk_score, should_flag)
+        await customer_crud.update_user_risk_score(user_id, risk_score, should_flag)
         
         # Create the claim
         claim = await claim_crud.create_claim(
-            user_id=kyc_id,
+            user_id=user_id,
             store_id=claim_context.store_id,
             email_at_store=claim_context.email_at_store,
             claim_data=claim_context.claim_data
@@ -89,7 +84,7 @@ async def submit_claim(payload: ClaimSubmissionPayload):
         
         return ClaimResponse(
             claim_id=uuid.UUID(claim['id']),
-            user_id=kyc_id,
+            user_id=user_id,
             status=claim_status,
             risk_score=risk_score,
             is_flagged=should_flag,

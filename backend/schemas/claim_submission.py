@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from typing import List
 import uuid
-from .kyc import KYCData
 from .item_data import ItemData
 
 class ClaimContext(BaseModel):
@@ -10,5 +9,5 @@ class ClaimContext(BaseModel):
     claim_data: List[ItemData]
 
 class ClaimSubmissionPayload(BaseModel):
-    kyc_data: KYCData
+    user_id: uuid.UUID
     claim_context: ClaimContext
