@@ -12,11 +12,7 @@ DB_KEY := $(SUPABASE_ANON_KEY)
 .PHONY: seed-data clear-data
 
 seed-data:
-	@echo "Seeding database with demo data..."
-	@psql "$(DB_URL)?apikey=$(DB_KEY)" -c "SELECT seed_demo_data();"
-	@echo "✓ Demo data seeded successfully!"
+	@python3 setup/seed_data.py
 
 clear-data:
-	@echo "Clearing all demo data..."
-	@psql "$(DB_URL)?apikey=$(DB_KEY)" -c "SELECT clear_demo_data();"
-	@echo "✓ Data cleared successfully!"
+	@python3 setup/seed_data.py clear
