@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { DashboardLayout } from "./components/dashboard/DashboardLayout";
 import CompanyProfile from "./pages/CompanyProfile";
+import TopProducts from "./pages/TopProducts";
+import TopCategories from "./pages/TopCategories";
 import UserList from "./pages/UserList";
 import NotFound from "./pages/NotFound";
 
@@ -22,6 +24,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<CompanyProfile />} />
               <Route path="/users" element={<UserList />} />
+              <Route path="/top-products" element={<TopProducts />} />
+              <Route path="/top-categories" element={<TopCategories />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

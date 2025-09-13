@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, Users } from 'lucide-react';
+import { Building2, Users, BarChart3, Layers3 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
@@ -23,6 +23,16 @@ const navigationItems = [
     title: 'User List',
     url: '/users',
     icon: Users,
+  },
+  {
+    title: 'Products',
+    url: '/top-products',
+    icon: BarChart3,
+  },
+  {
+    title: 'Categories',
+    url: '/top-categories',
+    icon: Layers3,
   },
 ];
 
