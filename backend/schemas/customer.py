@@ -1,17 +1,21 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from datetime import datetime, date
+import uuid
 
 class CustomerCreate(BaseModel):
     full_name: str
-    dob: str
+    dob: date
     email: EmailStr  # Pydantic will validate this is a proper email format
     password: str
 
 class CustomerResponse(BaseModel):
-    id: str
-    created_at: str
+    id: uuid.UUID
+    created_at: datetime
     full_name: str
-    dob: str
+    dob: date
     email: EmailStr
+    risk_score: int = Field(default=0, ge=0, le=100)
+    is_flagged: bool = Field(default=False)
 
 class CustomerCreateResponse(BaseModel):
     message: str
