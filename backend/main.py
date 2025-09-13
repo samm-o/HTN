@@ -1,6 +1,10 @@
 from fastapi import FastAPI
+from api.user import router as user_router
 
-app = FastAPI()
+app = FastAPI(title="HTN Backend API", version="1.0.0")
+
+# Include routers
+app.include_router(user_router)
 
 @app.get("/health")
 def read_root():
