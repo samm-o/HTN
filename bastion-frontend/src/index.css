@@ -1,0 +1,148 @@
+/* Avenir is a system font, no Google Fonts import needed */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark Night Theme Dashboard Design System */
+
+@layer base {
+
+  :root {
+    /* Base dark theme colors */
+    --background: 220 13% 7%;
+    --foreground: 0 0% 98%;
+
+    /* Card surfaces with subtle elevation */
+    --card: 220 13% 9%;
+    --card-foreground: 0 0% 98%;
+
+    /* Elevated surfaces */
+    --popover: 220 13% 11%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary accent - subtle blue-gray */
+    --primary: 217 12% 84%;
+    --primary-foreground: 220 13% 9%;
+
+    /* Secondary surfaces */
+    --secondary: 220 13% 12%;
+    --secondary-foreground: 0 0% 90%;
+
+    /* Muted elements */
+    --muted: 220 13% 12%;
+    --muted-foreground: 0 0% 60%;
+
+    /* Accent surfaces */
+    --accent: 220 13% 14%;
+    --accent-foreground: 0 0% 95%;
+
+    /* Error states */
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Borders and inputs */
+    --border: 220 13% 16%;
+    --input: 220 13% 16%;
+    --ring: 217 12% 84%;
+
+    /* Chart colors - Professional blue/gray palette */
+    --chart-1: 217 45% 60%;
+    --chart-2: 217 35% 45%;
+    --chart-3: 217 25% 30%;
+    --chart-4: 217 55% 70%;
+    --chart-5: 217 15% 80%;
+
+    /* Dashboard specific colors */
+    --surface-elevated: 220 13% 11%;
+    --surface-subtle: 220 13% 8%;
+    --text-primary: 0 0% 98%;
+    --text-secondary: 0 0% 75%;
+    --text-muted: 0 0% 55%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar theme */
+    --sidebar-background: 220 13% 8%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 217 12% 84%;
+    --sidebar-primary-foreground: 220 13% 9%;
+    --sidebar-accent: 220 13% 12%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 13% 14%;
+    --sidebar-ring: 217 12% 84%;
+  }
+
+  .light {
+    /* Base light theme colors */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    /* Card surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    /* Elevated surfaces */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Primary accent */
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    /* Secondary surfaces */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+
+    /* Muted elements */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    /* Accent surfaces */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+
+    /* Error states */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Borders and inputs */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    /* Chart colors - Professional blue/gray palette */
+    --chart-1: 217 60% 50%;
+    --chart-2: 217 45% 35%;
+    --chart-3: 217 30% 20%;
+    --chart-4: 217 70% 65%;
+    --chart-5: 217 25% 75%;
+
+    /* Dashboard specific colors */
+    --surface-elevated: 0 0% 98%;
+    --surface-subtle: 210 40% 98%;
+    --text-primary: 222.2 84% 4.9%;
+    --text-secondary: 215.4 16.3% 46.9%;
+    --text-muted: 215.4 16.3% 56.9%;
+
+    /* Sidebar theme */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 222.2 47.4% 11.2%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 222.2 84% 4.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
