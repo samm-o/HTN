@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, Users } from 'lucide-react';
+import { Building2, Users, BarChart3, Layers3 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
@@ -23,6 +23,16 @@ const navigationItems = [
     title: 'User List',
     url: '/users',
     icon: Users,
+  },
+  {
+    title: 'Products',
+    url: '/top-products',
+    icon: BarChart3,
+  },
+  {
+    title: 'Categories',
+    url: '/top-categories',
+    icon: Layers3,
   },
 ];
 
@@ -62,10 +72,10 @@ export function DashboardSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     onClick={() => navigate(item.url)}
-                    className={`w-full justify-start px-6 py-3 transition-colors ${
+                    className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
                       isActive(item.url)
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                        : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
+                        ? 'bg-slate-800 text-sidebar-accent-foreground font-medium'
+                        : 'text-sidebar-foreground hover:bg-slate-800/60'
                     }`}
                   >
                     <item.icon
