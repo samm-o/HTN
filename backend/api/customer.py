@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Query
-from schemas.user import CustomerCreate, CustomerResponse, CustomerCreateResponse, CustomerGetResponse
+from schemas.customer import CustomerCreate, CustomerResponse, CustomerCreateResponse, CustomerGetResponse
 from crud.crud_customer import customer_crud
 from pydantic import EmailStr
 

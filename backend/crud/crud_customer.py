@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any
 from supabase import Client
-from schemas.user import CustomerCreate, CustomerResponse
+from schemas.customer import CustomerCreate, CustomerResponse
 from core.database import get_supabase_client
 import uuid
 from datetime import datetime
