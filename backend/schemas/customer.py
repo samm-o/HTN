@@ -5,8 +5,9 @@ import uuid
 class CustomerCreate(BaseModel):
     full_name: str
     dob: date
+    dob: date
     email: EmailStr  # Pydantic will validate this is a proper email format
-    password: str
+    id_url: str
 
 class CustomerResponse(BaseModel):
     id: uuid.UUID

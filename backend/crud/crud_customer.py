@@ -80,14 +80,8 @@ class CustomerCRUD:
     async def create_customer(self, customer: CustomerCreate) -> Dict[str, Any]:
         """Create a new customer in Supabase"""
         try:
-            # Generate UUID for the customer
-            customer_id = str(uuid.uuid4())
-            current_time = datetime.utcnow().isoformat()
-            
             # Prepare customer data for insertion
             customer_data = {
-                "id": customer_id,
-                "created_at": current_time,
                 "full_name": customer.full_name,
                 "dob": customer.dob.isoformat(),
                 "email": customer.email,
