@@ -62,10 +62,10 @@ export function DashboardSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     onClick={() => navigate(item.url)}
-                    className={`w-full justify-start px-6 py-3 transition-colors ${
+                    className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
                       isActive(item.url)
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                        : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
+                        ? 'bg-slate-800 text-sidebar-accent-foreground font-medium'
+                        : 'text-sidebar-foreground hover:bg-slate-800/60'
                     }`}
                   >
                     <item.icon

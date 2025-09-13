@@ -37,12 +37,82 @@ const KYCPlatform = () => {
     }}>
       {/* Animated gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-200/20 via-purple-200/20 to-pink-200/20 animate-breathe"></div>
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-purple-200/25 via-pink-200/25 to-blue-200/25 rounded-full mix-blend-normal filter blur-3xl animate-blob"></div>
-        <div className="absolute -top-10 -right-20 w-80 h-80 bg-gradient-to-br from-blue-200/30 via-cyan-200/30 to-purple-200/30 rounded-full mix-blend-normal filter blur-3xl animate-float animation-delay-2000"></div>
-        <div className="absolute -bottom-20 left-10 w-72 h-72 bg-gradient-to-br from-pink-200/35 via-purple-200/35 to-blue-200/35 rounded-full mix-blend-normal filter blur-3xl animate-breathe animation-delay-4000"></div>
-        <div className="absolute bottom-10 -right-10 w-64 h-64 bg-gradient-to-br from-cyan-200/25 via-blue-200/25 to-indigo-200/25 rounded-full mix-blend-normal filter blur-3xl animate-float animation-delay-6000"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-200/20 via-purple-200/20 to-pink-200/20 animate-gentle-wave"></div>
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-purple-200/25 via-pink-200/25 to-blue-200/25 rounded-full mix-blend-normal filter blur-3xl animate-gentle-breathe"></div>
+        <div className="absolute -top-10 -right-20 w-80 h-80 bg-gradient-to-br from-blue-200/30 via-cyan-200/30 to-purple-200/30 rounded-full mix-blend-normal filter blur-3xl animate-gentle-float animation-delay-2000"></div>
+        <div className="absolute -bottom-20 left-10 w-72 h-72 bg-gradient-to-br from-pink-200/35 via-purple-200/35 to-blue-200/35 rounded-full mix-blend-normal filter blur-3xl animate-gentle-breathe animation-delay-4000"></div>
+        <div className="absolute bottom-10 -right-10 w-64 h-64 bg-gradient-to-br from-cyan-200/25 via-blue-200/25 to-indigo-200/25 rounded-full mix-blend-normal filter blur-3xl animate-gentle-float animation-delay-6000"></div>
       </div>
+      
+      {/* Custom CSS for gentle animations */}
+      <style>{`
+        @keyframes gentle-breathe {
+          0%, 100% { 
+            transform: scale(1) translateY(0px);
+            opacity: 0.7;
+          }
+          50% { 
+            transform: scale(1.02) translateY(-2px);
+            opacity: 0.9;
+          }
+        }
+        
+        @keyframes gentle-float {
+          0%, 100% { 
+            transform: translateY(0px) translateX(0px) scale(1);
+          }
+          33% { 
+            transform: translateY(-3px) translateX(1px) scale(1.01);
+          }
+          66% { 
+            transform: translateY(1px) translateX(-1px) scale(0.99);
+          }
+        }
+        
+        @keyframes gentle-wave {
+          0%, 100% { 
+            background-position: 0% 50%;
+            transform: translateY(0px);
+          }
+          25% { 
+            background-position: 25% 60%;
+            transform: translateY(-1px);
+          }
+          50% { 
+            background-position: 50% 40%;
+            transform: translateY(1px);
+          }
+          75% { 
+            background-position: 75% 55%;
+            transform: translateY(-0.5px);
+          }
+        }
+        
+        .animate-gentle-breathe {
+          animation: gentle-breathe 8s ease-in-out infinite;
+        }
+        
+        .animate-gentle-float {
+          animation: gentle-float 12s ease-in-out infinite;
+        }
+        
+        .animate-gentle-wave {
+          animation: gentle-wave 15s ease-in-out infinite;
+          background-size: 200% 200%;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        
+        .animation-delay-6000 {
+          animation-delay: 6s;
+        }
+      `}</style>
       
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 relative z-10">
         {/* Header */}
@@ -54,7 +124,7 @@ const KYCPlatform = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">VerifyID</h1>
+              <h1 className="text-xl font-bold text-gray-900">Verify ID</h1>
               <p className="text-sm text-gray-500">Identity verification</p>
             </div>
           </div>

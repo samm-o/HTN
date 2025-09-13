@@ -1,4 +1,4 @@
-/* Avenir is a system font, no Google Fonts import needed */
+/* Global styles; font is loaded via index.html (Space Grotesk) */
 
 @tailwind base;
 @tailwind components;
@@ -144,5 +144,81 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+  }
+
+  /* Typography Scale for SHIELD Dashboard */
+  .text-h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .text-h2 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  .text-body {
+    @apply text-sm font-normal;
+  }
+
+  .text-label {
+    @apply text-xs font-medium text-muted-foreground;
+  }
+
+  .text-metadata {
+    @apply text-xs font-normal text-muted-foreground;
+  }
+
+  /* Consistent spacing system - 4px grid */
+  .spacing-xs { @apply p-1; }
+  .spacing-sm { @apply p-2; }
+  .spacing-md { @apply p-4; }
+  .spacing-lg { @apply p-6; }
+  .spacing-xl { @apply p-8; }
+
+  /* Smooth transitions for all interactive elements */
+  .transition-smooth {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  /* Enhanced hover states */
+  .hover-lift {
+    @apply transition-smooth hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  /* Risk score color system */
+  .risk-low { @apply text-green-500 bg-green-50 dark:bg-green-950; }
+  .risk-medium { @apply text-yellow-500 bg-yellow-50 dark:bg-yellow-950; }
+  .risk-high { @apply text-red-500 bg-red-50 dark:bg-red-950; }
+
+  /* Skeleton loader animation */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  .skeleton-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Typewriter effect for AI analysis */
+  .typewriter {
+    overflow: hidden;
+    border-right: 2px solid hsl(var(--primary));
+    white-space: nowrap;
+    animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+  }
+
+  @keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  @keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: hsl(var(--primary)); }
   }
 }

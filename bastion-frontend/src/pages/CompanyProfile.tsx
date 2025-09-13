@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -24,6 +24,10 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { Tooltip as ReTooltip, Area, Sector } from 'recharts';
+import { ShieldAlert, CheckCircle, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import CountUp from '@/components/ui/count-up';
+import { SkeletonLoader } from '@/components/ui/skeleton-loader';
 import {
   Table,
   TableBody,
@@ -161,11 +165,13 @@ const renderCustomLabel = ({
     <text
       x={x}
       y={y}
-      fill="hsl(var(--foreground))"
+      fill="#E5E7EB"
       textAnchor={x > cx ? 'start' : 'end'}
       dominantBaseline="central"
       fontSize="12"
       fontWeight="500"
+      stroke="rgba(0,0,0,0.6)"
+      strokeWidth={0.5}
     >
       {`${name}: ${(percent * 100).toFixed(0)}%`}
     </text>
@@ -173,10 +179,17 @@ const renderCustomLabel = ({
 };
 
 export default function CompanyProfile() {
+  const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '1m' | '3m' | '1y'>('7d');
   const [selectedMetric, setSelectedMetric] = useState<
     'suspiciousDisputes' | 'approvedDisputes' | 'percentage'
   >('suspiciousDisputes');
+  const [hoveredCategoryIndex, setHoveredCategoryIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(t);
+  }, []);
 
   const currentData = timeRangeData[timeRange];
   const totalSuspiciousDisputes = currentData.suspiciousDisputes.reduce(
@@ -189,6 +202,24 @@ export default function CompanyProfile() {
   );
   const approvalRate = ((totalApprovedDisputes / totalSuspiciousDisputes) * 100).toFixed(1);
 
+  // Derived helpers for secondary metrics
+  const average = (values: number[]) => Math.round(values.reduce((a, b) => a + b, 0) / Math.max(values.length, 1));
+  const change = (values: number[]) => (values.length > 1 ? values[values.length - 1] - values[0] : 0);
+
+  const suspiciousValues = currentData.suspiciousDisputes.map(d => d.value);
+  const approvedValues = currentData.approvedDisputes.map(d => d.value);
+  const percentSeries = currentData.suspiciousDisputes.map((s, i) => {
+    const val = ((currentData.approvedDisputes[i]?.value || 0) / s.value) * 100;
+    return parseFloat(val.toFixed(1));
+  });
+
+  const avgSuspicious = average(suspiciousValues);
+  const chgSuspicious = change(suspiciousValues);
+  const avgApproved = average(approvedValues);
+  const chgApproved = change(approvedValues);
+  const avgPercent = Math.round(average(percentSeries));
+  const chgPercent = Math.round(change(percentSeries));
+
   const getChartData = () => {
     if (selectedMetric === 'suspiciousDisputes') return currentData.suspiciousDisputes;
     if (selectedMetric === 'approvedDisputes') return currentData.approvedDisputes;
@@ -198,6 +229,29 @@ export default function CompanyProfile() {
       value: ((currentData.approvedDisputes[index]?.value || 0) / suspicious.value) * 100,
     }));
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+          <div className="h-10 w-32 bg-muted rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="h-28 bg-muted/60 border border-slate-800 rounded-lg animate-pulse" />
+          <div className="h-28 bg-muted/60 border border-slate-800 rounded-lg animate-pulse" />
+          <div className="h-28 bg-muted/60 border border-slate-800 rounded-lg animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-96 bg-muted/60 border border-slate-800 rounded-lg animate-pulse" />
+          <div className="h-96 bg-muted/60 border border-slate-800 rounded-lg animate-pulse" />
+        </div>
+        <div className="bg-muted/60 border border-slate-800 rounded-lg p-6">
+          <SkeletonLoader rows={5} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -224,50 +278,86 @@ export default function CompanyProfile() {
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card
-          className={`cursor-pointer transition-colors ${
-            selectedMetric === 'suspiciousDisputes' ? 'ring-2 ring-primary' : ''
+          className={`relative cursor-pointer transition-colors hover:bg-slate-800/50 ${
+            selectedMetric === 'suspiciousDisputes' ? 'ring-2 ring-primary/70' : ''
           }`}
           onClick={() => setSelectedMetric('suspiciousDisputes')}
         >
           <CardHeader>
+            <ShieldAlert className="absolute top-4 right-4 h-5 w-5 text-primary/80" />
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Suspicious Disputes
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              {totalSuspiciousDisputes.toLocaleString()}
+              <CountUp to={totalSuspiciousDisputes} separator="," duration={0.6} />
             </CardDescription>
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+              <span>Avg: {avgSuspicious.toLocaleString()}</span>
+              <span className="flex items-center gap-1">
+                {chgSuspicious >= 0 ? (
+                  <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                ) : (
+                  <ArrowDownRight className="h-3 w-3 text-red-400" />
+                )}
+                {Math.abs(chgSuspicious).toLocaleString()} since start
+              </span>
+            </div>
           </CardHeader>
         </Card>
 
         <Card
-          className={`cursor-pointer transition-colors ${
+          className={`relative cursor-pointer transition-colors hover:bg-slate-800/50 ${
             selectedMetric === 'approvedDisputes' ? 'ring-2 ring-primary' : ''
           }`}
           onClick={() => setSelectedMetric('approvedDisputes')}
         >
           <CardHeader>
+            <CheckCircle className="absolute top-4 right-4 h-5 w-5 text-muted-foreground/80" />
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Approved Disputes
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              {totalApprovedDisputes.toLocaleString()}
+              <CountUp to={totalApprovedDisputes} separator="," duration={0.6} />
             </CardDescription>
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+              <span>Avg: {avgApproved.toLocaleString()}</span>
+              <span className="flex items-center gap-1">
+                {chgApproved >= 0 ? (
+                  <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                ) : (
+                  <ArrowDownRight className="h-3 w-3 text-red-400" />
+                )}
+                {Math.abs(chgApproved).toLocaleString()} since start
+              </span>
+            </div>
           </CardHeader>
         </Card>
 
         <Card
-          className={`cursor-pointer transition-colors ${
+          className={`relative cursor-pointer transition-colors hover:bg-slate-800/50 ${
             selectedMetric === 'percentage' ? 'ring-2 ring-primary' : ''
           }`}
           onClick={() => setSelectedMetric('percentage')}
         >
           <CardHeader>
+            <TrendingUp className="absolute top-4 right-4 h-5 w-5 text-muted-foreground/80" />
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Approval Rate
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              {approvalRate}%
+              <CountUp to={parseFloat(approvalRate)} separator="," duration={0.6} />%
             </CardDescription>
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+              <span>Avg: {avgPercent}%</span>
+              <span className="flex items-center gap-1">
+                {chgPercent >= 0 ? (
+                  <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                ) : (
+                  <ArrowDownRight className="h-3 w-3 text-red-400" />
+                )}
+                {Math.abs(chgPercent)}% since start
+              </span>
+            </div>
           </CardHeader>
         </Card>
       </div>
@@ -292,16 +382,30 @@ export default function CompanyProfile() {
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={getChartData()}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="hsl(var(--border))"
-                  />
+                  <defs>
+                    <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
                   <XAxis
                     dataKey="date"
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                   />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <ReTooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: 8,
+                      color: 'hsl(var(--foreground))',
+                      padding: '6px 8px'
+                    }}
+                    labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="none" fill="url(#lineGradient)" />
                   <Line
                     type="monotone"
                     dataKey="value"
@@ -329,21 +433,31 @@ export default function CompanyProfile() {
             <div className="h-96 flex flex-col">
               <div className="flex-1 min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    margin={{ top: 30, right: 30, bottom: 30, left: 30 }}
-                  >
+                  <PieChart margin={{ top: 30, right: 30, bottom: 30, left: 30 }}>
                     <Pie
                       data={categoryData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      innerRadius={40}
                       outerRadius={75}
-                      fill="#8884d8"
+                      labelLine={false}
+                      label={renderCustomLabel}
                       dataKey="value"
+                      activeIndex={hoveredCategoryIndex ?? -1}
+                      activeShape={(props: any) => (
+                        <Sector {...props} outerRadius={props.outerRadius + 6} />
+                      )}
+                      onMouseEnter={(_, idx) => setHoveredCategoryIndex(idx)}
+                      onMouseLeave={() => setHoveredCategoryIndex(null)}
                     >
                       {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color}
+                          opacity={
+                            hoveredCategoryIndex === null || hoveredCategoryIndex === index ? 1 : 0.5
+                          }
+                        />
                       ))}
                     </Pie>
                   </PieChart>
@@ -353,7 +467,9 @@ export default function CompanyProfile() {
                 {categoryData.map((entry, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between py-1"
+                    className="flex items-center justify-between py-1 cursor-pointer rounded hover:bg-slate-800/40 transition-colors"
+                    onMouseEnter={() => setHoveredCategoryIndex(index)}
+                    onMouseLeave={() => setHoveredCategoryIndex(null)}
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -406,7 +522,7 @@ export default function CompanyProfile() {
             </TableHeader>
             <TableBody>
               {topDisputedItems.map((item, index) => (
-                <TableRow key={index} className="border-border">
+                <TableRow key={index} className="border-border hover:bg-slate-800/40 transition-colors">
                   <TableCell className="font-medium text-foreground">
                     {item.item}
                   </TableCell>
