@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from api.customer import router as customer_router
 
+app = FastAPI(title="HTN Backend API", version="1.0.0")
+
 # Include routers
 app.include_router(customer_router)
 

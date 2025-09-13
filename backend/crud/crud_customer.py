@@ -1,8 +1,7 @@
 from typing import Optional, Dict, Any
 from supabase import Client
-from schemas.customer import CustomerCreate, CustomerResponse, CustomerLogin, CustomerRegister
+from schemas.user import CustomerCreate, CustomerResponse
 from core.database import get_supabase_client
-from core.security import get_password_hash, verify_password
 import uuid
 from datetime import datetime
 
@@ -18,17 +17,14 @@ class CustomerCRUD:
             customer_id = str(uuid.uuid4())
             current_time = datetime.utcnow().isoformat()
             
-            # Hash the password
-            hashed_password = get_password_hash(customer.password)
-            
             # Prepare customer data for insertion
             customer_data = {
                 "id": customer_id,
                 "created_at": current_time,
                 "full_name": customer.full_name,
                 "dob": customer.dob,
-                "email": customer.email,
-                "password_hash": hashed_password
+                "id_url": customer.id_url,
+                "email": customer.email
             }
             
             # Insert customer into Supabase
@@ -104,44 +100,6 @@ class CustomerCRUD:
                 "message": f"Error fetching customer: {str(e)}"
             }
     
-    async def authenticate_customer(self, email: str, password: str) -> Dict[str, Any]:
-        """Authenticate customer with email and password"""
-        try:
-            # Get customer by email
-            result = self.supabase.table(self.table_name).select("*").eq("email", email).execute()
-            
-            if not result.data:
-                return {
-                    "success": False,
-                    "data": None,
-                    "message": "Invalid email or password"
-                }
-            
-            customer = result.data[0]
-            
-            # Verify password
-            if not verify_password(password, customer["password_hash"]):
-                return {
-                    "success": False,
-                    "data": None,
-                    "message": "Invalid email or password"
-                }
-            
-            # Remove password_hash from response
-            customer_data = {k: v for k, v in customer.items() if k != "password_hash"}
-            
-            return {
-                "success": True,
-                "data": customer_data,
-                "message": "Authentication successful"
-            }
-            
-        except Exception as e:
-            return {
-                "success": False,
-                "data": None,
-                "message": f"Error authenticating customer: {str(e)}"
-            }
 
 # Create a global instance
 customer_crud = CustomerCRUD()
