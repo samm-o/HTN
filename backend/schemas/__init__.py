@@ -4,7 +4,6 @@ from .user import User, UserCreate, UserResponse, UserUpdate
 from .store import Store, StoreCreate, StoreResponse
 from .item_data import ItemData, ItemDataResponse
 from .claim import Claim, ClaimCreate, ClaimResponse, ClaimUpdateStatus, ClaimStatus
-from .kyc import KYCData, KYCResponse
 from .claim_submission import ClaimContext, ClaimSubmissionPayload
 
 __all__ = [
@@ -23,9 +22,6 @@ __all__ = [
     
     # Claim models
     "Claim", "ClaimCreate", "ClaimResponse", "ClaimUpdateStatus", "ClaimStatus",
-    
-    # KYC models
-    "KYCData", "KYCResponse",
     
     # Submission models
     "ClaimContext", "ClaimSubmissionPayload"
