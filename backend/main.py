@@ -58,8 +58,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Include routers
@@ -75,6 +76,10 @@ app.include_router(users_router)
 @app.get("/health")
 def read_root():
     return {"status": "ok"}
+
+@app.options("/{full_path:path}")
+def options_handler(full_path: str):
+    return {"message": "OK"}
 
 if __name__ == "__main__":
     import uvicorn
