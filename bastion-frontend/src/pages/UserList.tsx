@@ -310,7 +310,9 @@ export default function UserList() {
                 </div>
                 <div className="bg-card p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Risk Score</p>
-                  <p className="text-lg font-semibold text-foreground">{selectedUser.user.risk_score}</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {selectedUser.user.risk_score !== null ? selectedUser.user.risk_score : 'N/A'}
+                  </p>
                 </div>
                 <div className="bg-card p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Flagged</p>
