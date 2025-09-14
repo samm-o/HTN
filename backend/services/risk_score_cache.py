@@ -4,6 +4,7 @@ Handles background calculation and caching of user risk scores to improve perfor
 """
 
 import asyncio
+import os
 import uuid
 from typing import Dict, Optional, Any
 from datetime import datetime, timedelta
@@ -22,6 +23,10 @@ class RiskScoreCache:
         self.supabase = get_supabase_client()
         self.last_updated = {}
         self.calculation_in_progress = set()
+        # Configuration to limit AI/claim processing in cache to avoid excessive Cohere calls
+        self.use_ai_in_cache = (os.getenv("COHERE_USE_AI_IN_CACHE", "false").lower() == "true")
+        self.max_claims_per_user = int(os.getenv("RISK_CACHE_MAX_CLAIMS_PER_USER", "3"))
+        self.fetch_claims_limit = int(os.getenv("RISK_CACHE_FETCH_LIMIT", "20"))
     
     async def initialize_cache(self):
         """Initialize cache with all users on startup"""
@@ -66,9 +71,15 @@ class RiskScoreCache:
         """Calculate risk score for a single user"""
         try:
             # Get user's claims
-            claims_response = self.supabase.table("claims").select(
-                "id, status, created_at, claim_data"
-            ).eq("user_id", user_id).execute()
+            claims_response = (
+                self.supabase
+                .table("claims")
+                .select("id, status, created_at, claim_data")
+                .eq("user_id", user_id)
+                .order("created_at", desc=True)
+                .limit(self.fetch_claims_limit)
+                .execute()
+            )
             
             claims = claims_response.data if claims_response.data else []
             
@@ -95,7 +106,8 @@ class RiskScoreCache:
             processed_claims = []
             total_value = 0
             
-            for claim in claims:
+            # Analyze only the most recent N claims to reduce processing
+            for claim in claims[: self.max_claims_per_user]:
                 claim_data = claim.get("claim_data", [])
                 if isinstance(claim_data, str):
                     try:
@@ -126,7 +138,8 @@ class RiskScoreCache:
                         # Calculate fraud score for this claim
                         fraud_analysis = await self.ml_fraud_service.calculate_fraud_score(
                             user_id=uuid.UUID(user_id),
-                            claim_data=claim["items"]
+                            claim_data=claim["items"],
+                            use_ai=self.use_ai_in_cache
                         )
                         risk_scores.append(fraud_analysis["fraud_score"])
                         

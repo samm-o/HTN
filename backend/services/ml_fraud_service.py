@@ -1,7 +1,9 @@
 import os
 import cohere
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timezone, timedelta
+import asyncio
+import hashlib
 from dotenv import load_dotenv
 import uuid
 from collections import Counter
@@ -22,6 +24,14 @@ class MLFraudService:
         self.customer_crud = CustomerCRUD()
         self.claim_crud = ClaimCRUD()
         self.supabase = get_supabase()
+        # Feature flag: allow disabling Cohere (fallback only)
+        self.cohere_enabled = (os.getenv("COHERE_ENABLED", "true").lower() == "true")
+        # Concurrency limit to avoid flooding Cohere
+        max_conc = int(os.getenv("COHERE_MAX_CONCURRENCY", "2"))
+        self._cohere_semaphore = asyncio.Semaphore(max_conc)
+        # Simple in-memory TTL cache for rerank calls
+        self._rerank_cache: Dict[str, Tuple[float, List[Dict[str, Any]]]] = {}
+        self._rerank_ttl_seconds = int(os.getenv("COHERE_RERANK_TTL_SECONDS", "21600"))  # default 6h
         
         # Fraud pattern templates for Cohere reranking
         self.fraud_patterns = [
@@ -37,7 +47,7 @@ class MLFraudService:
             "Suspicious round number quantities like 10, 15, 20 items per return"
         ]
     
-    async def calculate_fraud_score(self, user_id: uuid.UUID, claim_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def calculate_fraud_score(self, user_id: uuid.UUID, claim_data: List[Dict[str, Any]], use_ai: Optional[bool] = None) -> Dict[str, Any]:
         """
         Calculate comprehensive fraud score using ML analysis
         
@@ -59,7 +69,9 @@ class MLFraudService:
         behavior_description = self._generate_behavior_description(user_data, claim_data, historical_data)
         
         # Use Cohere AI to identify fraud patterns
-        fraud_indicators = await self._analyze_fraud_patterns(behavior_description)
+        # Decide whether to call Cohere based on flag
+        effective_use_ai = self.cohere_enabled if use_ai is None else (self.cohere_enabled and use_ai)
+        fraud_indicators = await self._analyze_fraud_patterns(behavior_description if effective_use_ai else behavior_description, ) if effective_use_ai else self._fallback_pattern_analysis(behavior_description)
         
         # Calculate base score using traditional factors
         base_score = self._calculate_base_score(user_data, claim_data, historical_data)
@@ -156,26 +168,40 @@ class MLFraudService:
         """.strip()
     
     async def _analyze_fraud_patterns(self, behavior_description: str) -> List[Dict[str, Any]]:
-        """Use Cohere AI to identify relevant fraud patterns"""
+        """Use Cohere AI to identify relevant fraud patterns with caching and rate limiting."""
+        # If disabled via flag, use fallback immediately
+        if not self.cohere_enabled:
+            return self._fallback_pattern_analysis(behavior_description)
+
+        # Cache key is hash of behavior description + current fraud_patterns version
+        cache_key = hashlib.sha256((behavior_description + "::" + str(len(self.fraud_patterns))).encode("utf-8")).hexdigest()
+        now = datetime.utcnow().timestamp()
+        cached = self._rerank_cache.get(cache_key)
+        if cached and now - cached[0] < self._rerank_ttl_seconds:
+            return cached[1]
+
         try:
-            response = self.client.rerank(
-                model="rerank-v3.5",
-                query=behavior_description,
-                documents=self.fraud_patterns,
-                top_n=5,
-                max_tokens_per_doc=4096
-            )
-            
-            indicators = []
+            async with self._cohere_semaphore:
+                response = self.client.rerank(
+                    model="rerank-v3.5",
+                    query=behavior_description,
+                    documents=self.fraud_patterns,
+                    top_n=5,
+                    max_tokens_per_doc=4096
+                )
+
+            indicators: List[Dict[str, Any]] = []
             for result in response.results:
                 indicators.append({
                     "pattern": self.fraud_patterns[result.index],
                     "relevance_score": result.relevance_score,
                     "risk_weight": self._pattern_to_risk_weight(result.index)
                 })
-            
+
+            # Store in cache with timestamp
+            self._rerank_cache[cache_key] = (now, indicators)
             return indicators
-            
+
         except Exception as e:
             print(f"Cohere API Error: {str(e)}")
             return self._fallback_pattern_analysis(behavior_description)
