@@ -10,9 +10,6 @@ from crud.crud_customer import CustomerCRUD
 from crud.crud_claim import ClaimCRUD
 from core.supabase_client import get_supabase
 
-# Load environment variables
-load_dotenv()
-
 class MLFraudService:
     """
     ML-powered fraud detection service using Cohere's AI models.
@@ -20,6 +17,7 @@ class MLFraudService:
     """
     
     def __init__(self, api_key: Optional[str] = None):
+        load_dotenv()
         self.client = cohere.ClientV2(api_key=api_key or os.getenv("COHERE_API_KEY"))
         self.customer_crud = CustomerCRUD()
         self.claim_crud = ClaimCRUD()
