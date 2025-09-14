@@ -114,9 +114,16 @@ export function DashboardSidebar() {
                   onClick={() => {
                     if (collapsed) {
                       navigate('/api-docs');
-                    } else {
-                      setApiDocsOpen((v) => !v);
+                      return;
                     }
+                    setApiDocsOpen((v) => {
+                      const next = !v;
+                      if (next) {
+                        navigate('/api-docs');
+                        setWebhookDocsOpen(false);
+                      }
+                      return next;
+                    });
                   }}
                   className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
                     isActive('/api-docs')
@@ -137,9 +144,13 @@ export function DashboardSidebar() {
                     </div>
                   )}
                 </SidebarMenuButton>
-                {/* Submenu for API Docs anchors */}
-                {!collapsed && apiDocsOpen && (
-                  <div className="mt-1 ml-10 flex flex-col gap-1">
+                {/* Submenu for API Docs anchors with slide animation */}
+                {!collapsed && (
+                  <div
+                    className={`mt-1 ml-10 flex flex-col gap-1 overflow-hidden transition-all duration-300 ${
+                      apiDocsOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                  >
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
@@ -215,9 +226,16 @@ export function DashboardSidebar() {
                   onClick={() => {
                     if (collapsed) {
                       navigate('/webhook-docs');
-                    } else {
-                      setWebhookDocsOpen((v) => !v);
+                      return;
                     }
+                    setWebhookDocsOpen((v) => {
+                      const next = !v;
+                      if (next) {
+                        navigate('/webhook-docs');
+                        setApiDocsOpen(false);
+                      }
+                      return next;
+                    });
                   }}
                   className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
                     isActive('/webhook-docs')
@@ -238,8 +256,12 @@ export function DashboardSidebar() {
                     </div>
                   )}
                 </SidebarMenuButton>
-                {!collapsed && webhookDocsOpen && (
-                  <div className="mt-1 ml-10 flex flex-col gap-1">
+                {!collapsed && (
+                  <div
+                    className={`mt-1 ml-10 flex flex-col gap-1 overflow-hidden transition-all duration-300 ${
+                      webhookDocsOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                  >
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
