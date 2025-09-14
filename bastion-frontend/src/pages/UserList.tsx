@@ -365,8 +365,7 @@ export default function UserList() {
                     Suspicious Disputes
                   </p>
                   <p className="text-3xl font-bold text-foreground">
-                    {selectedUser.user.total_claims -
-                      selectedUser.user.approved_claims}
+                    {selectedUser.user.total_claims}
                   </p>
                 </div>
 
