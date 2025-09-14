@@ -14,19 +14,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip 
 } from 'recharts';
 import { Tooltip as ReTooltip, Area, Sector } from 'recharts';
 import { ShieldAlert, CheckCircle, TrendingUp, ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp } from 'lucide-react';
-import CountUp from '@/components/ui/count-up';
 import { SkeletonLoader } from '@/components/ui/skeleton-loader';
 import {
   Table,
@@ -64,36 +55,6 @@ interface SummaryStats {
   approvalRate: number;
 }
 
-const renderCustomLabel = ({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  name,
-  percent,
-}: any) => {
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="#E5E7EB"
-      textAnchor={x > cx ? 'start' : 'end'}
-      dominantBaseline="central"
-      fontSize="12"
-      fontWeight="500"
-      stroke="rgba(0,0,0,0.6)"
-      strokeWidth={0.5}
-    >
-      {`${name}: ${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-};
 
 export default function CompanyProfile() {
   const [loading, setLoading] = useState(true);
@@ -147,9 +108,14 @@ export default function CompanyProfile() {
     fetchData();
   }, [timeRange]);
 
-  // Derived helpers for secondary metrics
-  const average = (values: number[]) => Math.round(values.reduce((a, b) => a + b, 0) / Math.max(values.length, 1));
-  const change = (values: number[]) => (values.length > 1 ? values[values.length - 1] - values[0] : 0);
+  // Derived helpers for percentage change calculations
+  const getPercentageChange = (values: number[]) => {
+    if (values.length < 2) return 0;
+    const firstValue = values[0];
+    const lastValue = values[values.length - 1];
+    if (firstValue === 0) return lastValue > 0 ? 100 : 0;
+    return Math.round(((lastValue - firstValue) / firstValue) * 100);
+  };
 
   const suspiciousValues = dashboardData.suspiciousDisputes.map(d => d.value);
   const approvedValues = dashboardData.approvedDisputes.map(d => d.value);
@@ -158,12 +124,9 @@ export default function CompanyProfile() {
     return parseFloat(val.toFixed(1));
   });
 
-  const avgSuspicious = average(suspiciousValues);
-  const chgSuspicious = change(suspiciousValues);
-  const avgApproved = average(approvedValues);
-  const chgApproved = change(approvedValues);
-  const avgPercent = Math.round(average(percentSeries));
-  const chgPercent = Math.round(change(percentSeries));
+  const chgSuspicious = getPercentageChange(suspiciousValues);
+  const chgApproved = getPercentageChange(approvedValues);
+  const chgPercent = getPercentageChange(percentSeries);
 
   const getChartData = () => {
     if (selectedMetric === 'suspiciousDisputes') return dashboardData.suspiciousDisputes;
@@ -191,9 +154,33 @@ export default function CompanyProfile() {
           <div className="h-96 bg-muted/60 border border-slate-800 rounded-lg animate-pulse" />
           <div className="h-96 bg-muted/60 border border-slate-800 rounded-lg animate-pulse" />
         </div>
-        <div className="bg-muted/60 border border-slate-800 rounded-lg p-6">
-          <SkeletonLoader rows={5} />
-        </div>
+        <Card>
+          <CardHeader>
+            <div className="h-6 w-48 bg-slate-800 rounded animate-pulse" />
+            <div className="h-4 w-64 bg-slate-800 rounded animate-pulse" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Table Header Skeleton */}
+              <div className="grid grid-cols-4 gap-4 pb-3 border-b border-slate-700">
+                <div className="h-4 w-24 bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-20 bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-28 bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-16 bg-slate-800 rounded animate-pulse" />
+              </div>
+              
+              {/* Table Rows Skeleton */}
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="grid grid-cols-4 gap-4 py-3 border-b border-slate-800/50">
+                  <div className="h-4 w-32 bg-slate-800/60 rounded animate-pulse" />
+                  <div className="h-4 w-16 bg-slate-800/60 rounded animate-pulse" />
+                  <div className="h-4 w-24 bg-slate-800/60 rounded animate-pulse" />
+                  <div className="h-8 w-20 bg-slate-700 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -209,7 +196,7 @@ export default function CompanyProfile() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-foreground">Home</h2>
+        <h2 className="text-3xl font-bold text-foreground">Company Profile</h2>
         <Select
           value={timeRange}
           onValueChange={(value: '7d' | '1m' | '3m' | '1y') =>
@@ -242,17 +229,16 @@ export default function CompanyProfile() {
               Suspicious Disputes
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              <CountUp to={summaryStats.totalSuspiciousDisputes} separator="," duration={0.6} />
+              {summaryStats.totalSuspiciousDisputes.toLocaleString()}
             </CardDescription>
-            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-              <span>Avg: {avgSuspicious.toLocaleString()}</span>
+            <div className="mt-2 flex items-center text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 {chgSuspicious >= 0 ? (
                   <ArrowUpRight className="h-3 w-3 text-emerald-400" />
                 ) : (
                   <ArrowDownRight className="h-3 w-3 text-red-400" />
                 )}
-                {Math.abs(chgSuspicious).toLocaleString()} since start
+{chgSuspicious >= 0 ? '+' : ''}{chgSuspicious}%
               </span>
             </div>
           </CardHeader>
@@ -270,17 +256,16 @@ export default function CompanyProfile() {
               Approved Disputes
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              <CountUp to={summaryStats.totalApprovedDisputes} separator="," duration={0.6} />
+              {summaryStats.totalApprovedDisputes.toLocaleString()}
             </CardDescription>
-            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-              <span>Avg: {avgApproved.toLocaleString()}</span>
+            <div className="mt-2 flex items-center text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 {chgApproved >= 0 ? (
                   <ArrowUpRight className="h-3 w-3 text-emerald-400" />
                 ) : (
                   <ArrowDownRight className="h-3 w-3 text-red-400" />
                 )}
-                {Math.abs(chgApproved).toLocaleString()} since start
+{chgApproved >= 0 ? '+' : ''}{chgApproved}%
               </span>
             </div>
           </CardHeader>
@@ -298,17 +283,16 @@ export default function CompanyProfile() {
               Approval Rate
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              <CountUp to={summaryStats.approvalRate} separator="," duration={0.6} />%
+              {summaryStats.approvalRate}%
             </CardDescription>
-            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-              <span>Avg: {avgPercent}%</span>
+            <div className="mt-2 flex items-center text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 {chgPercent >= 0 ? (
                   <ArrowUpRight className="h-3 w-3 text-emerald-400" />
                 ) : (
                   <ArrowDownRight className="h-3 w-3 text-red-400" />
                 )}
-                {Math.abs(chgPercent)}% since start
+{chgPercent >= 0 ? '+' : ''}{chgPercent}%
               </span>
             </div>
           </CardHeader>
@@ -332,8 +316,9 @@ export default function CompanyProfile() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-80 flex items-center justify-center">
+              <div className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={getChartData()}>
                   <defs>
                     <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
@@ -367,7 +352,8 @@ export default function CompanyProfile() {
                     dot={{ fill: 'hsl(var(--chart-1))', strokeWidth: 2 }}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+                </ResponsiveContainer>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -383,83 +369,59 @@ export default function CompanyProfile() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-96 flex flex-col">
-              <div className="flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart margin={{ top: 30, right: 30, bottom: 30, left: 30 }}>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={75}
-                      labelLine={false}
-                      label={renderCustomLabel}
-                      dataKey="value"
-                      activeIndex={hoveredCategoryIndex ?? -1}
-                      activeShape={(props: any) => (
-                        <Sector {...props} outerRadius={props.outerRadius + 6} />
-                      )}
-                      onMouseEnter={(_, idx) => setHoveredCategoryIndex(idx)}
-                      onMouseLeave={() => setHoveredCategoryIndex(null)}
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.color}
-                          opacity={
-                            hoveredCategoryIndex === null || hoveredCategoryIndex === index ? 1 : 0.5
-                          }
-                        />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4 space-y-2">
-                {/* Show first 4 categories by default */}
-                {(showAllCategories ? categoryData : categoryData.slice(0, 4)).map((entry, index) => (
+            <div className="h-96">
+              <div className="max-h-80 overflow-y-auto pr-4 space-y-3 px-1 scrollbar-none">
+                {(showAllCategories ? categoryData : categoryData.slice(0, 6)).map((entry, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between py-1 cursor-pointer rounded hover:bg-slate-800/40 transition-colors"
+                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 border transform origin-center ${
+                      hoveredCategoryIndex === index 
+                        ? 'bg-slate-800/60 border-slate-600 scale-[1.01]' 
+                        : 'bg-slate-900/40 border-slate-700/50 hover:bg-slate-800/30 hover:border-slate-600'
+                    }`}
                     onMouseEnter={() => setHoveredCategoryIndex(index)}
                     onMouseLeave={() => setHoveredCategoryIndex(null)}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: entry.color }}
-                      />
-                      <span className="text-sm text-muted-foreground font-medium">
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-slate-200">
                         {entry.name}
                       </span>
                     </div>
-                    <span className="text-sm text-foreground font-semibold">
-                      {entry.value}%
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-24 bg-slate-700 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all duration-300 bg-slate-400"
+                          style={{ width: `${entry.value}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-bold text-white min-w-[3rem] text-right">
+                        {entry.value}%
+                      </span>
+                    </div>
                   </div>
                 ))}
-                
-                {/* Show more/less button if there are more than 4 categories */}
-                {categoryData.length > 4 && (
+              </div>
+              
+              {categoryData.length > 6 && (
+                <div className="mt-4 pt-4 border-t border-slate-700">
                   <button
                     onClick={() => setShowAllCategories(!showAllCategories)}
-                    className="flex items-center gap-2 w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-slate-800/40"
+                    className="flex items-center gap-2 w-full py-2 px-3 text-sm text-slate-400 hover:text-slate-200 transition-colors rounded-lg hover:bg-slate-800/40 border border-slate-700/50 hover:border-slate-600"
                   >
                     {showAllCategories ? (
                       <>
                         <ChevronUp className="h-4 w-4" />
-                        Show Less ({categoryData.length - 4} hidden)
+                        Show Less ({categoryData.length - 6} hidden)
                       </>
                     ) : (
                       <>
                         <ChevronDown className="h-4 w-4" />
-                        Show More ({categoryData.length - 4} more)
+                        Show More ({categoryData.length - 6} more)
                       </>
                     )}
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
