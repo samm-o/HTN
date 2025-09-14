@@ -97,106 +97,6 @@ export function DashboardSidebar() {
                     {!collapsed && <span>{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              {/* Webhook Docs */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => {
-                    if (collapsed) {
-                      navigate('/webhook-docs');
-                    } else {
-                      setWebhookDocsOpen((v) => !v);
-                    }
-                  }}
-                  className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
-                    isActive('/webhook-docs')
-                      ? 'bg-slate-800 text-sidebar-accent-foreground font-medium'
-                      : 'text-sidebar-foreground hover:bg-slate-800/60'
-                  }`}
-                  aria-expanded={!collapsed ? webhookDocsOpen : undefined}
-                >
-                  <FileText className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
-                  {!collapsed && (
-                    <div className="flex items-center justify-between w-full">
-                      <span>Webhook Docs</span>
-                      {webhookDocsOpen ? (
-                        <ChevronDown className="h-4 w-4 opacity-70" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 opacity-70" />
-                      )}
-                    </div>
-                  )}
-                </SidebarMenuButton>
-                {!collapsed && webhookDocsOpen && (
-                  <div className="mt-1 ml-10 flex flex-col gap-1">
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#introduction'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#introduction')}
-                    >
-                      Overview
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#signing'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#signing')}
-                    >
-                      Signatures
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#events'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#events')}
-                    >
-                      Event Types
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#manage'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#manage')}
-                    >
-                      Manage Endpoints
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#retries'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#retries')}
-                    >
-                      Retries & Delivery
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#security'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#security')}
-                    >
-                      Security
-                    </button>
-                  </div>
-                )}
-              </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -305,6 +205,106 @@ export function DashboardSidebar() {
                       onClick={() => navigate('/api-docs#error-handling')}
                     >
                       Error Handling
+                    </button>
+                  </div>
+                )}
+              </SidebarMenuItem>
+              {/* Webhook Docs under Developer API */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => {
+                    if (collapsed) {
+                      navigate('/webhook-docs');
+                    } else {
+                      setWebhookDocsOpen((v) => !v);
+                    }
+                  }}
+                  className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
+                    isActive('/webhook-docs')
+                      ? 'bg-slate-800 text-sidebar-accent-foreground font-medium'
+                      : 'text-sidebar-foreground hover:bg-slate-800/60'
+                  }`}
+                  aria-expanded={!collapsed ? webhookDocsOpen : undefined}
+                >
+                  <FileText className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
+                  {!collapsed && (
+                    <div className="flex items-center justify-between w-full">
+                      <span>Webhook Docs</span>
+                      {webhookDocsOpen ? (
+                        <ChevronDown className="h-4 w-4 opacity-70" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 opacity-70" />
+                      )}
+                    </div>
+                  )}
+                </SidebarMenuButton>
+                {!collapsed && webhookDocsOpen && (
+                  <div className="mt-1 ml-10 flex flex-col gap-1">
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#introduction'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#introduction')}
+                    >
+                      Overview
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#signing'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#signing')}
+                    >
+                      Signatures
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#events'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#events')}
+                    >
+                      Event Types
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#manage'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#manage')}
+                    >
+                      Manage Endpoints
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#retries'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#retries')}
+                    >
+                      Retries & Delivery
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#security'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#security')}
+                    >
+                      Security
                     </button>
                   </div>
                 )}
