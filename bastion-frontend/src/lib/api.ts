@@ -105,6 +105,25 @@ class ApiClient {
     return this.request(`/api/v1/stores/${storeId}/claims?limit=${limit}`);
   }
 
+  // ML Fraud Detection endpoints
+  async analyzeClaimFraud(payload: any) {
+    return this.request('/api/v1/ml-fraud/analyze', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async submitClaimWithML(payload: any) {
+    return this.request('/api/v1/ml-fraud/submit-with-ml', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getUserRiskProfile(userId: string) {
+    return this.request(`/api/v1/ml-fraud/user/${userId}/risk-profile`);
+  }
+
   // Health check
   async healthCheck() {
     return this.request('/health');

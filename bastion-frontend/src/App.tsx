@@ -6,6 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { DashboardLayout } from "./components/dashboard/DashboardLayout";
 import CompanyProfile from "./pages/CompanyProfile";
+import TopProducts from "./pages/TopProducts";
+import TopCategories from "./pages/TopCategories";
+import Claims from "./pages/Claims";
+import MLFraudDetection from "./pages/MLFraudDetection";
 import ApiDocs from "./pages/ApiDocs";
 import ApiKeys from "./pages/ApiKeys";
 import Webhooks from "./pages/Webhooks";
@@ -26,6 +30,10 @@ const App = () => (
             <Routes>
               <Route path="/" element={<CompanyProfile />} />
               <Route path="/customers" element={<UserList />} />
+              <Route path="/claims" element={<Claims />} />
+              <Route path="/ml-fraud" element={<MLFraudDetection />} />
+              <Route path="/top-products" element={<TopProducts />} />
+              <Route path="/top-categories" element={<TopCategories />} />
               <Route path="/api-docs" element={<ApiDocs />} />
               <Route path="/api-keys" element={<ApiKeys />} />
               <Route path="/webhooks" element={<Webhooks />} />
