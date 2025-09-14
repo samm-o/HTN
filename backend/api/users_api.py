@@ -11,7 +11,7 @@ async def get_users_list(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100)
 ):
-    """Get paginated list of users with dispute statistics"""
+    """Get paginated list of users with claim statistics"""
     supabase = get_supabase_client()
     
     try:
@@ -45,10 +45,10 @@ async def get_users_list(
             claims_response = supabase.table("claims").select("id, status, created_at").eq("user_id", user_id).execute()
             
             claims = claims_response.data if claims_response.data else []
-            total_disputes = len(claims)
-            pending_disputes = len([c for c in claims if c["status"] == "PENDING"])
-            approved_disputes = len([c for c in claims if c["status"] == "APPROVED"])
-            denied_disputes = len([c for c in claims if c["status"] == "DENIED"])
+            total_claims = len(claims)
+            pending_claims = len([c for c in claims if c["status"] == "PENDING"])
+            approved_claims = len([c for c in claims if c["status"] == "APPROVED"])
+            denied_claims = len([c for c in claims if c["status"] == "DENIED"])
             
             # Calculate last activity
             last_activity = None
@@ -61,10 +61,10 @@ async def get_users_list(
                 "created_at": user["created_at"],
                 "risk_score": user["risk_score"],
                 "is_flagged": user["is_flagged"],
-                "total_disputes": total_disputes,
-                "pending_disputes": pending_disputes,
-                "approved_disputes": approved_disputes,
-                "denied_disputes": denied_disputes,
+                "total_claims": total_claims,
+                "pending_claims": pending_claims,
+                "approved_claims": approved_claims,
+                "denied_claims": denied_claims,
                 "last_activity": last_activity
             })
         
@@ -83,7 +83,7 @@ async def get_users_list(
 
 @router.get("/{user_id}/details")
 async def get_user_details(user_id: str):
-    """Get detailed user information with dispute history"""
+    """Get detailed user information with claim history"""
     supabase = get_supabase_client()
     
     try:
