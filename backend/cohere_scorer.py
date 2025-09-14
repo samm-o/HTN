@@ -1,7 +1,12 @@
 import os
 import cohere
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 import uuid
 
 class CohereEnhancedFraudDetector:
@@ -402,7 +407,7 @@ if __name__ == "__main__":
             "item_name": "shirt",
             "category": "clothing", 
             "price": 12.99,
-            "quantity": 1,
+            "quantity": 2,
             "url": None
         }
     ]
