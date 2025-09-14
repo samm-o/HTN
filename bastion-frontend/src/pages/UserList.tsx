@@ -429,6 +429,9 @@ export default function UserList() {
                       <TableHead className="text-muted-foreground">
                         Item
                       </TableHead>
+                      <TableHead className="text-muted-foreground">
+                        Quantity
+                      </TableHead>
                       <TableHead className="text-muted-foreground text-right">
                         Status
                       </TableHead>
@@ -451,6 +454,15 @@ export default function UserList() {
                             {claim.items.map((item, itemIndex) => (
                               <div key={itemIndex} className="mb-1">
                                 {item.item_name}
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          <div className="text-sm">
+                            {claim.items.map((item, itemIndex) => (
+                              <div key={itemIndex} className="mb-1">
+                                {item.quantity}
                               </div>
                             ))}
                           </div>
