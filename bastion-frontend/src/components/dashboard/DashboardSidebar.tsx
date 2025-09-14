@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Building2, Users, BarChart3, Layers3, FileText, Key, ChevronDown, ChevronRight } from 'lucide-react';
+import { Building2, Users, BarChart3, Layers3, FileText, Key, ChevronDown, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
@@ -65,6 +65,7 @@ export function DashboardSidebar() {
   return (
     <Sidebar className={collapsed ? 'w-16' : 'w-64'} collapsible="icon">
       <SidebarContent>
+        <div className="flex flex-col h-full">
         <div className="h-16 border-b border-sidebar-border flex items-center justify-center">
           <h2
             className={`font-bold text-sidebar-foreground ${
@@ -105,7 +106,7 @@ export function DashboardSidebar() {
         {/* Developer API Section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/60 text-sm font-medium px-6 py-2">
-            Developer API
+            Developer Tools
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -176,24 +177,13 @@ export function DashboardSidebar() {
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#data-models'
+                        currentPath.startsWith('/api-docs') && currentHash === '#core-concepts'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/api-docs#data-models')}
+                      onClick={() => navigate('/api-docs#core-concepts')}
                     >
-                      Data Models
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#post-claims'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/api-docs#post-claims')}
-                    >
-                      POST /claims
+                      Core Concepts
                     </button>
                     <button
                       type="button"
@@ -204,7 +194,29 @@ export function DashboardSidebar() {
                       }`}
                       onClick={() => navigate('/api-docs#get-users-kyc_email')}
                     >
-                      GET /users/{'{'}kyc_email{'}'}
+                      Retrieve a User Profile
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/api-docs') && currentHash === '#post-claims'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/api-docs#post-claims')}
+                    >
+                      Submit a Claim
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/api-docs') && currentHash === '#webhooks'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/api-docs#webhooks')}
+                    >
+                      Webhooks
                     </button>
                     <button
                       type="button"
@@ -271,62 +283,51 @@ export function DashboardSidebar() {
                       }`}
                       onClick={() => navigate('/webhook-docs#introduction')}
                     >
-                      Overview
+                      Introduction
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#signing'
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#security-signatures'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/webhook-docs#signing')}
+                      onClick={() => navigate('/webhook-docs#security-signatures')}
                     >
-                      Signatures
+                      Security: Signatures
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#events'
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#endpoint-url'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/webhook-docs#events')}
+                      onClick={() => navigate('/webhook-docs#endpoint-url')}
+                    >
+                      Endpoint URL
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#event-types'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#event-types')}
                     >
                       Event Types
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#manage'
+                        currentPath.startsWith('/webhook-docs') && currentHash === '#best-practices'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/webhook-docs#manage')}
+                      onClick={() => navigate('/webhook-docs#best-practices')}
                     >
-                      Manage Endpoints
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#retries'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#retries')}
-                    >
-                      Retries & Delivery
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#security'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#security')}
-                    >
-                      Security
+                      Best Practices
                     </button>
                   </div>
                 )}
@@ -360,6 +361,28 @@ export function DashboardSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Sticky footer: Settings */}
+        <div className="mt-auto sticky bottom-0 bg-sidebar-background/80 backdrop-blur border-t border-sidebar-border">
+          <div className="py-2">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate('/settings')}
+                  className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
+                    isActive('/settings')
+                      ? 'bg-slate-800 text-sidebar-accent-foreground font-medium'
+                      : 'text-sidebar-foreground hover:bg-slate-800/60'
+                  }`}
+                >
+                  <SettingsIcon className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
+                  {!collapsed && <span>Settings</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </div>
+        </div>
+        </div>
       </SidebarContent>
     </Sidebar>
   );

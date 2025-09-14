@@ -13,6 +13,7 @@ import ApiDocs from "./pages/ApiDocs";
 import ApiKeys from "./pages/ApiKeys";
 import Webhooks from "./pages/Webhooks";
 import WebhookDocs from "./pages/WebhookDocs";
+import Settings from "./pages/Settings";
 import UserList from "./pages/UserList";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/api-keys" element={<ApiKeys />} />
               <Route path="/webhooks" element={<Webhooks />} />
               <Route path="/webhook-docs" element={<WebhookDocs />} />
+              <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

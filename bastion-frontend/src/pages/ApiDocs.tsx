@@ -114,7 +114,7 @@ export default function ApiDocs() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-foreground">API Docs</h2>
+        <h2 className="text-3xl font-bold text-foreground">Bastion API Documentation</h2>
       </div>
       {/* Pretty, subtle horizontal scrollbar styles for code blocks */}
       <style>
@@ -133,11 +133,10 @@ export default function ApiDocs() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-foreground">
-            Developer Documentation
+            Bastion API
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Bastion Bastion API reference and guides. For the complete Markdown
-            reference, see <code>API_DOCS.md</code> in the repository root.
+            Welcome to the Bastion API. Use our REST API to integrate fraud detection, retrieve user risk, and submit claims. All responses are JSON over HTTPS.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -145,307 +144,204 @@ export default function ApiDocs() {
             {/* Section: Introduction */}
             <section id="introduction" className="scroll-mt-24">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-                <div className="md:col-span-5 space-y-3">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    Introduction & Core Concepts
-                  </h3>
+                <div className="md:col-span-12 space-y-3">
+                  <h3 className="text-xl font-semibold text-foreground">Introduction</h3>
                   <p>
-                    Bastion helps e‑commerce stores detect and prevent return
-                    fraud. The Bastion API lets you submit return claims for
-                    fraud analysis and retrieve a user’s lifetime claim history
-                    across integrated stores.
+                    Welcome to the Bastion API. Our platform provides businesses with programmatic access to our cross-platform fraud detection engine. You can use this API to enrich your own systems with a user's comprehensive return history, real-time risk scores, and detailed claim information.
                   </p>
                   <p>
-                    <strong>Base URL:</strong>{" "}
-                    <code>https://api.bastion.com/v1</code>
+                    The Bastion API is organized around REST. It has predictable resource-oriented URLs, accepts and returns JSON, and uses standard HTTP response codes and verbs. All API requests must be made over HTTPS.
                   </p>
                   <p>
-                    <strong>Find or Create workflow:</strong> On claim
-                    submission, Bastion finds a master <code>User</code>
-                    by <code>kyc_email</code> (or creates one), then finds or
-                    creates a <code>StoreAccount</code> for that user and{" "}
-                    <code>store_id</code>, computes a risk score, and records
-                    the <code>Claim</code>.
+                    <strong>Base URL</strong>
                   </p>
+                  <CodeBlock lang="bash" code={`https://api.bastion.com/v1`} />
                 </div>
-                <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
-                  <div className="rounded-lg border bg-card p-4">
-                    <div id="intro-curl" className="mt-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Chip label="curl" kind="curl" />
-                        <span className="text-xs text-muted-foreground">
-                          example
-                        </span>
-                      </div>
-                      <CodeBlock
-                        lang="bash"
-                        code={`curl -X GET "https://api.bastion.com/v1/health" \\
--H "X-API-Key: <YOUR_API_KEY>"`}
-                      />
-                    </div>
-                  </div>
-                </aside>
               </div>
             </section>
 
             {/* Section: Authentication */}
             <section id="authentication" className="scroll-mt-24">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-                <div className="md:col-span-5 space-y-3">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    Authentication
-                  </h3>
+                <div className="md:col-span-12 space-y-3">
+                  <h3 className="text-xl font-semibold text-foreground">Authentication</h3>
                   <p>
-                    Authenticate by passing your API key via the{" "}
-                    <code>X-API-Key</code> header. All requests must use HTTPS.
-                    Requests without authentication or using HTTP will fail with{" "}
-                    <code>401</code>.
+                    The Bastion API uses API keys to authenticate requests. You can view and manage your API keys in the Bastion Dashboard under <strong>Settings &gt; API Keys</strong>.
                   </p>
-                </div>
-                <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
+                  <p>
+                    Your API keys carry many privileges, so be sure to keep them secure. Do not share your secret API keys in publicly accessible areas such as GitHub or client-side code. Authentication is performed by providing your key in the <code>X-API-Key</code> HTTP header. Requests without authentication will fail with a <code>401 Unauthorized</code> error.
+                  </p>
                   <div className="rounded-lg border bg-card p-4">
-                    <div className="mt-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Chip label="curl" kind="curl" />
-                        <span className="text-xs text-muted-foreground">
-                          example
-                        </span>
-                      </div>
-                      <CodeBlock
-                        lang="bash"
-                        code={`curl -X GET "https://api.bastion.com/v1/health" \\
--H "X-API-Key: <YOUR_API_KEY>"`}
-                      />
-                    </div>
-                    <p className="mt-3">
-                      Missing or invalid keys return{" "}
-                      <code>401 Unauthorized</code>.
-                    </p>
-                  </div>
-                </aside>
-              </div>
-            </section>
-
-            {/* Section: Data Models */}
-            <section id="data-models" className="scroll-mt-24">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-                <div className="md:col-span-5 space-y-3">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    Data Models / Schemas
-                  </h3>
-                  <p>
-                    <strong>User</strong>: master, KYC‑verified identity.
-                  </p>
-                  <ul className="list-disc pl-5">
-                    <li>
-                      <code>id</code> (uuid), <code>kyc_email</code> (string),{" "}
-                      <code>full_name</code> (string), <code>dob</code>{" "}
-                      (YYYY‑MM‑DD)
-                    </li>
-                    <li>
-                      <code>risk_score</code> (0–100), <code>is_flagged</code>{" "}
-                      (boolean), <code>created_at</code> (ISO 8601)
-                    </li>
-                  </ul>
-                  <p>
-                    <strong>StoreAccount</strong>: user’s account at a single
-                    store.
-                  </p>
-                  <ul className="list-disc pl-5">
-                    <li>
-                      <code>id</code> (uuid), <code>user_id</code> (uuid),{" "}
-                      <code>store_id</code> (uuid), <code>email_at_store</code>{" "}
-                      (string)
-                    </li>
-                  </ul>
-                  <p>
-                    <strong>ItemData</strong>: item within a claim.
-                  </p>
-                  <ul className="list-disc pl-5">
-                    <li>
-                      <code>item_name</code> (string), <code>category</code>{" "}
-                      (string), <code>price</code> (float),{" "}
-                      <code>quantity</code> (int), <code>url</code> (string?)
-                    </li>
-                  </ul>
-                  <p>
-                    <strong>Claim</strong>: primary claim object.
-                  </p>
-                  <ul className="list-disc pl-5">
-                    <li>
-                      <code>id</code> (uuid), <code>store_account_id</code>{" "}
-                      (uuid), <code>status</code>{" "}
-                      ("PENDING"|"APPROVED"|"DENIED"), <code>claim_data</code>{" "}
-                      (ItemData[]), <code>created_at</code> (ISO 8601)
-                    </li>
-                  </ul>
-                </div>
-                <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
-                  <div className="rounded-lg border bg-card p-4">
-                    <div className="text-foreground font-medium mb-2">
-                      Example User object
+                    <div className="flex items-center gap-2 mb-1">
+                      <Chip label="curl" kind="curl" />
+                      <span className="text-xs text-muted-foreground">example</span>
                     </div>
                     <CodeBlock
-                      lang="json"
-                      code={`{
-  "id": "usr_01abc...",
-  "kyc_email": "jane.d.doe@gmail.com",
-  "full_name": "Jane Doe",
-  "dob": "1998-11-20",
-  "risk_score": 74,
-  "is_flagged": true,
-  "created_at": "2023-05-01T12:00:00Z"
-}`}
+                      lang="bash"
+                      code={`# Example of an authenticated request using cURL\ncurl "https://api.bastion.com/v1/users/jane.d.doe%40gmail.com" \\\n  -H "X-API-Key: YOUR_SECRET_API_KEY"`}
                     />
                   </div>
-                </aside>
+                </div>
               </div>
             </section>
 
-            {/* Section: POST /claims */}
-            <section id="post-claims" className="scroll-mt-24">
+            {/* Section: Core Concepts */}
+            <section id="core-concepts" className="scroll-mt-24">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                <div className="md:col-span-12 space-y-3">
+                  <h3 className="text-xl font-semibold text-foreground">Core Concepts: The Data Objects</h3>
+                  <p>
+                    To understand the API, it's important to understand the core data objects. Our system is designed around a "master identity" model.
+                  </p>
+                  <p>
+                    <strong>The User Object:</strong> This represents a single, unique human being who has been verified by a KYC process. This object is the master record and contains the overall risk assessment. A user is uniquely identified by their <code>kyc_email</code>.
+                  </p>
+                  <p>
+                    <strong>The Store Account Object:</strong> This object links a master User to their specific account at one of your Stores. A single User can have multiple <code>StoreAccount</code> objects, allowing you to track their activity across different properties.
+                  </p>
+                  <p>
+                    <strong>The Claim Object:</strong> This represents a single return or dispute event. It is always linked to a specific <code>StoreAccount</code> and contains details about the products and the event's status.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Section: Retrieve a User Profile (GET /users/{kyc_email}) */}
+            <section id="get-users-kyc_email" className="scroll-mt-24">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                 <div className="md:col-span-5 space-y-3">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    POST /claims
-                  </h3>
+                  <h3 className="text-xl font-semibold text-foreground">Retrieve a User Profile</h3>
                   <p>
-                    Submit a new return claim. Bastion performs Find‑or‑Create
-                    for <code>User</code> and
-                    <code> StoreAccount</code>, computes risk, and records the{" "}
-                    <code>Claim</code>.
+                    This is the primary endpoint for enriching your user data. Given a user's unique KYC email, this endpoint returns a complete, aggregated profile of that user, including their overall risk score, all of their known store accounts, and a full history of every claim they have ever made.
                   </p>
-                  <p className="font-medium text-foreground">Request body</p>
-                  <CodeBlock
-                    lang="json"
-                    code={`{
-  "kyc_data": {
-    "full_name": "Jane Doe",
-    "dob": "1998-11-20",
-    "kyc_email": "jane.d.doe@gmail.com"
-  },
-  "claim_context": {
-    "store_id": "8765-uuid-of-store",
-    "email_at_store": "jane.doe.promo@outlook.com",
-    "claim_data": [
-      {
-        "item_name": "iPhone 16 Max",
-        "category": "Electronics",
-        "price": 1299.99,
-        "quantity": 1,
-        "url": "https://store.example.com/product/123"
-      }
-    ]
-  }
-}`}
-                  />
+                  <p className="font-medium text-foreground">Endpoint</p>
+                  <CodeBlock lang="bash" code={`GET /users/{kyc_email}`} />
                 </div>
                 <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
                   <div className="rounded-lg border bg-card p-4 space-y-3">
-                    <Tabs defaultValue="post-claims-curl">
+                    <Tabs defaultValue="get-users-curl">
                       <TabsList className="flex flex-wrap gap-2">
-                        <TabsTrigger value="post-claims-curl">curl</TabsTrigger>
-                        <TabsTrigger value="post-claims-python">
-                          Python
-                        </TabsTrigger>
-                        <TabsTrigger value="post-claims-js">
-                          JavaScript
-                        </TabsTrigger>
-                        <TabsTrigger value="post-claims-response">
-                          Response
-                        </TabsTrigger>
+                        <TabsTrigger value="get-users-curl">Bash</TabsTrigger>
+                        <TabsTrigger value="get-users-python">Python</TabsTrigger>
+                        <TabsTrigger value="get-users-js">JavaScript</TabsTrigger>
+                        <TabsTrigger value="get-users-response">JSON</TabsTrigger>
                       </TabsList>
-                      <TabsContent
-                        value="post-claims-curl"
-                        id="post-claims-curl"
-                        className="mt-3"
-                      >
+                      <TabsContent value="get-users-curl" id="get-users-curl" className="mt-3">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <Chip label="curl" kind="curl" />
+                        </div>
+                        <CodeBlock
+                          lang="bash"
+                          code={`# cURL Request\ncurl "https://api.bastion.com/v1/users/jane.d.doe%40gmail.com" \\\n  -H "X-API-Key: YOUR_SECRET_API_KEY"`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="get-users-python" id="get-users-python" className="mt-3">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <Chip label="Python" kind="python" />
+                          <span className="text-xs text-muted-foreground">requests</span>
+                        </div>
+                        <CodeBlock
+                          lang="python"
+                          code={`# Python (requests)\nimport requests\n\napi_key = "YOUR_SECRET_API_KEY"\nkyc_email = "jane.d.doe@gmail.com"\n\nheaders = {"X-API-Key": api_key}\nresponse = requests.get(\n    f"https://api.bastion.com/v1/users/{kyc_email}",\n    headers=headers\n)\n\nprint(response.json())`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="get-users-js" id="get-users-js" className="mt-3">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <Chip label="JavaScript" kind="js" />
+                          <span className="text-xs text-muted-foreground">fetch</span>
+                        </div>
+                        <CodeBlock
+                          lang="javascript"
+                          code={`// JavaScript (fetch)\nconst apiKey = "YOUR_SECRET_API_KEY";\nconst kycEmail = "jane.d.doe@gmail.com";\n\nfetch(` + "`https://api.bastion.com/v1/users/${kycEmail}`" + `, {\n  method: "GET",\n  headers: { "X-API-Key": apiKey },\n})\n  .then((response) => response.json())\n  .then((data) => console.log(data));`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="get-users-response" id="get-users-response" className="mt-3">
+                        <div className="text-foreground font-medium">Example Response (200 OK)</div>
+                        <CodeBlock
+                          lang="json"
+                          code={`{\n  "id": "user_uuid_111AAA",\n  "kyc_email": "jane.d.doe@gmail.com",\n  "full_name": "Jane Doe",\n  "dob": "1998-11-20",\n  "risk_score": 85,\n  "is_flagged": true,\n  "created_at": "2025-09-13T18:15:00Z",\n  "store_accounts": [\n    {\n      "id": "store_account_uuid_222BBB",\n      "store_id": "store_uuid_BESTBUY",\n      "store_name": "Best Buy",\n      "email_at_store": "janes_shopping_acct@yahoo.com",\n      "claims": [\n        {\n          "id": "claim_uuid_C1",\n          "status": "DENIED",\n          "created_at": "2025-09-13T18:15:00Z",\n          "claim_data": [\n            {\n              "item_name": "Wireless Headphones",\n              "category": "Electronics",\n              "price": 299.99,\n              "quantity": 1\n            }\n          ]\n        }\n      ]\n    },\n    {\n      "id": "store_account_uuid_333CCC",\n      "store_id": "store_uuid_UBER",\n      "store_name": "Uber",\n      "email_at_store": "jane.doe@uber.com",\n      "claims": [\n        {\n          "id": "claim_uuid_C2",\n          "status": "APPROVED",\n          "created_at": "2025-10-02T11:45:00Z",\n          "claim_data": [\n            {\n              "item_name": "Lost Item Fee",\n              "category": "Fees",\n              "price": 15.00,\n              "quantity": 1\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}`}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                </aside>
+              </div>
+            </section>
+
+            {/* Section: Submit a Claim (POST /claims) */}
+            <section id="post-claims" className="scroll-mt-24">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                <div className="md:col-span-5 space-y-3">
+                  <h3 className="text-xl font-semibold text-foreground">Submit a Claim</h3>
+                  <p>
+                    This endpoint allows you to send claim data to Bastion for analysis. When you submit a claim, our system performs the "Find or Create" logic, updates the user's risk score, and records the new claim event. This is the primary method for contributing data to the Bastion network.
+                  </p>
+                  <p className="font-medium text-foreground">Endpoint</p>
+                  <CodeBlock lang="bash" code={`POST /claims`} />
+                </div>
+                <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
+                  <div className="rounded-lg border bg-card p-4 space-y-3">
+                    <Tabs defaultValue="post-claims-python">
+                      <TabsList className="flex flex-wrap gap-2">
+                        <TabsTrigger value="post-claims-curl">Bash</TabsTrigger>
+                        <TabsTrigger value="post-claims-python">Python</TabsTrigger>
+                        <TabsTrigger value="post-claims-js">JavaScript</TabsTrigger>
+                        <TabsTrigger value="post-claims-response">JSON</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="post-claims-curl" id="post-claims-curl" className="mt-3">
                         <div className="flex items-center gap-2 text-foreground font-medium">
                           <Chip label="curl" kind="curl" />
                         </div>
                         <CodeBlock
                           lang="bash"
                           code={`curl -X POST "https://api.bastion.com/v1/claims" \\
-+-H "Content-Type: application/json" \\
-+-H "X-API-Key: <YOUR_API_KEY>" \\
-+-d '{
-  "kyc_data": {"full_name": "Jane Doe", "dob": "1998-11-20", "kyc_email": "jane.d.doe@gmail.com"},
-  "claim_context": {"store_id": "8765-uuid-of-store", "email_at_store": "jane.doe.promo@outlook.com", "claim_data": [{"item_name": "iPhone 16 Max", "category": "Electronics", "price": 1299.99, "quantity": 1, "url": "https://store.example.com/product/123"}]}
+  -H "Content-Type: application/json" \\
+  -H "X-API-Key: YOUR_SECRET_API_KEY" \\
+  -d '{
+  "kyc_data": {
+    "full_name": "John Appleseed",
+    "dob": "1990-01-01",
+    "kyc_email": "john.appleseed@icloud.com"
+  },
+  "claim_context": {
+    "store_id": "store_uuid_YOUR_STORE",
+    "email_at_store": "john.a.store@example.com",
+    "claim_data": [
+      {
+        "item_name": "Laptop Sleeve",
+        "category": "Accessories",
+        "price": 49.99,
+        "quantity": 1,
+        "url": "https://yourstore.com/products/sleeve"
+      }
+    ]
+  }
 }'`}
                         />
                       </TabsContent>
-                      <TabsContent
-                        value="post-claims-python"
-                        id="post-claims-python"
-                        className="mt-3"
-                      >
+                      <TabsContent value="post-claims-python" id="post-claims-python" className="mt-3">
                         <div className="flex items-center gap-2 text-foreground font-medium">
                           <Chip label="Python" kind="python" />
-                          <span className="text-xs text-muted-foreground">
-                            requests
-                          </span>
+                          <span className="text-xs text-muted-foreground">requests</span>
                         </div>
                         <CodeBlock
                           lang="python"
-                          code={`import os, requests
-
-BASE_URL = "https://api.bastion.com/v1"
-API_KEY = os.getenv("Bastion_API_KEY", "sk_test_123")
-
-payload = {
-  "kyc_data": {"full_name": "Jane Doe", "dob": "1998-11-20", "kyc_email": "jane.d.doe@gmail.com"},
-  "claim_context": {"store_id": "8765-uuid-of-store", "email_at_store": "jane.doe.promo@outlook.com", "claim_data": [{"item_name": "iPhone 16 Max", "category": "Electronics", "price": 1299.99, "quantity": 1, "url": "https://store.example.com/product/123"}]}
-}
-
-r = requests.post(f"{BASE_URL}/claims", json=payload, headers={"X-API-Key": API_KEY}, timeout=30)
-r.raise_for_status()
-print(r.json())`}
+                          code={`# Python (requests)\nimport requests\n\napi_key = "YOUR_SECRET_API_KEY"\nheaders = {"X-API-Key": api_key, "Content-Type": "application/json"}\n\npayload = {\n  "kyc_data": {\n    "full_name": "John Appleseed",\n    "dob": "1990-01-01",\n    "kyc_email": "john.appleseed@icloud.com"\n  },\n  "claim_context": {\n    "store_id": "store_uuid_YOUR_STORE",\n    "email_at_store": "john.a.store@example.com",\n    "claim_data": [\n      {\n        "item_name": "Laptop Sleeve",\n        "category": "Accessories",\n        "price": 49.99,\n        "quantity": 1,\n        "url": "https://yourstore.com/products/sleeve"\n      }\n    ]\n  }\n}\n\nresponse = requests.post(\n    "https://api.bastion.com/v1/claims",\n    headers=headers,\n    json=payload\n)\n\nprint(response.status_code)\nprint(response.json())`}
                         />
                       </TabsContent>
-                      <TabsContent
-                        value="post-claims-js"
-                        id="post-claims-js"
-                        className="mt-3"
-                      >
+                      <TabsContent value="post-claims-js" id="post-claims-js" className="mt-3">
                         <div className="flex items-center gap-2 text-foreground font-medium">
                           <Chip label="JavaScript" kind="js" />
-                          <span className="text-xs text-muted-foreground">
-                            fetch
-                          </span>
+                          <span className="text-xs text-muted-foreground">fetch</span>
                         </div>
                         <CodeBlock
                           lang="javascript"
-                          code={`const BASE_URL = "https://api.bastion.com/v1";
-const API_KEY = "sk_test_123";
-
-const payload = {
-  kyc_data: { full_name: "Jane Doe", dob: "1998-11-20", kyc_email: "jane.d.doe@gmail.com" },
-  claim_context: { store_id: "8765-uuid-of-store", email_at_store: "jane.doe.promo@outlook.com", claim_data: [ { item_name: "iPhone 16 Max", category: "Electronics", price: 1299.99, quantity: 1, url: "https://store.example.com/product/123" } ] }
-};
-
-fetch(BASE_URL + '/claims', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY }, body: JSON.stringify(payload) })
-  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(json => console.log(json));`}
+                          code={`// JavaScript (fetch)\nconst apiKey = "YOUR_SECRET_API_KEY";\n\nconst payload = {\n  kyc_data: {\n    full_name: "John Appleseed",\n    dob: "1990-01-01",\n    kyc_email: "john.appleseed@icloud.com"\n  },\n  claim_context: {\n    store_id: "store_uuid_YOUR_STORE",\n    email_at_store: "john.a.store@example.com",\n    claim_data: [\n      {\n        item_name: "Laptop Sleeve",\n        category: "Accessories",\n        price: 49.99,\n        quantity: 1,\n        url: "https://yourstore.com/products/sleeve"\n      }\n    ]\n  }\n};\n\nfetch("https://api.bastion.com/v1/claims", {\n  method: "POST",\n  headers: {\n    "Content-Type": "application/json",\n    "X-API-Key": apiKey\n  },\n  body: JSON.stringify(payload)\n})\n  .then((response) => response.json())\n  .then((data) => console.log(data));`}
                         />
                       </TabsContent>
-                      <TabsContent
-                        value="post-claims-response"
-                        id="post-claims-response"
-                        className="mt-3"
-                      >
-                        <div className="text-foreground font-medium">
-                          Example response (201)
-                        </div>
-                        <CodeBlock
-                          lang="json"
-                          code={`{
-  "id": "clm_01hv2w4m8x2r9ngq7g9f7c2a1b",
-  "store_account_id": "sca_01hv2w8m3n4p5q6r7s8t9u0v1w",
-  "status": "PENDING",
-  "claim_data": [{"item_name": "iPhone 16 Max", "category": "Electronics", "price": 1299.99, "quantity": 1, "url": "https://store.example.com/product/123"}],
-  "created_at": "2025-09-13T23:00:12Z"
-}`}
-                        />
+                      <TabsContent value="post-claims-response" id="post-claims-response" className="mt-3">
+                        <div className="text-foreground font-medium">Example Response (201 Created)</div>
+                        <CodeBlock lang="json" code={`Returns the newly created Claim object.`} />
                       </TabsContent>
                     </Tabs>
                   </div>
@@ -453,139 +349,31 @@ fetch(BASE_URL + '/claims', { method: 'POST', headers: { 'Content-Type': 'applic
               </div>
             </section>
 
-            {/* Section: GET /users/{kyc_email} */}
-            <section id="get-users-kyc_email" className="scroll-mt-24">
+            {/* Section: Webhooks */}
+            <section id="webhooks" className="scroll-mt-24">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                 <div className="md:col-span-5 space-y-3">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    GET /users/{"{"}kyc_email{"}"}
-                  </h3>
+                  <h3 className="text-xl font-semibold text-foreground">Webhooks</h3>
                   <p>
-                    Retrieve a complete master user profile, including all{" "}
-                    <code>StoreAccount</code>s and their <code>Claim</code>s.
+                    To avoid continuously polling the API for updates, you can use webhooks. Bastion can send real-time notifications to your server when important events occur. This is the recommended way to build an automated integration.
                   </p>
-                  <p className="font-medium text-foreground">Path parameter</p>
+                  <p>
+                    You can configure your webhook endpoints in the Bastion Dashboard under <strong>Settings &gt; Webhooks</strong>. To ensure security, all webhook requests are signed with a unique signing secret.
+                  </p>
+                  <p className="font-medium text-foreground">Key Webhook Events</p>
                   <ul className="list-disc pl-5">
-                    <li>
-                      <code>kyc_email</code> (string, required): URL‑encoded KYC
-                      email of the user
-                    </li>
+                    <li><code>claim.risk_assessment.high</code>: Sent when a newly submitted claim results in a user's risk score exceeding a critical threshold (e.g., 75%).</li>
+                    <li><code>user.flagged</code>: Sent when a user's status is manually changed to "Flagged" by an analyst in the Bastion dashboard.</li>
                   </ul>
                 </div>
                 <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
-                  <div className="rounded-lg border bg-card p-4 space-y-3">
-                    <Tabs defaultValue="get-users-curl">
-                      <TabsList className="flex flex-wrap gap-2">
-                        <TabsTrigger value="get-users-curl">curl</TabsTrigger>
-                        <TabsTrigger value="get-users-python">
-                          Python
-                        </TabsTrigger>
-                        <TabsTrigger value="get-users-js">
-                          JavaScript
-                        </TabsTrigger>
-                        <TabsTrigger value="get-users-response">
-                          Response
-                        </TabsTrigger>
-                      </TabsList>
-                      <TabsContent
-                        value="get-users-curl"
-                        id="get-users-curl"
-                        className="mt-3"
-                      >
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                          <Chip label="curl" kind="curl" />
-                        </div>
-                        <CodeBlock
-                          lang="bash"
-                          code={`kyc_email="jane.d.doe@gmail.com"
-curl -X GET "https://api.bastion.com/v1/users/$(python -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "$kyc_email")" \\
-+-H "X-API-Key: <YOUR_API_KEY>"`}
-                        />
-                      </TabsContent>
-                      <TabsContent
-                        value="get-users-python"
-                        id="get-users-python"
-                        className="mt-3"
-                      >
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                          <Chip label="Python" kind="python" />
-                          <span className="text-xs text-muted-foreground">
-                            requests
-                          </span>
-                        </div>
-                        <CodeBlock
-                          lang="python"
-                          code={`import os, requests
-
-BASE_URL = "https://api.bastion.com/v1"
-API_KEY = os.getenv("Bastion_API_KEY", "sk_test_123")
-
-email = "jane.d.doe@gmail.com"
-r = requests.get(f"{BASE_URL}/users/{requests.utils.quote(email)}", headers={"X-API-Key": API_KEY}, timeout=30)
-r.raise_for_status()
-print(r.json())`}
-                        />
-                      </TabsContent>
-                      <TabsContent
-                        value="get-users-js"
-                        id="get-users-js"
-                        className="mt-3"
-                      >
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                          <Chip label="JavaScript" kind="js" />
-                          <span className="text-xs text-muted-foreground">
-                            fetch
-                          </span>
-                        </div>
-                        <CodeBlock
-                          lang="javascript"
-                          code={`const BASE_URL = "https://api.bastion.com/v1";
-const API_KEY = "sk_test_123";
-const kycEmail = encodeURIComponent('jane.d.doe@gmail.com');
-fetch(BASE_URL + '/users/' + kycEmail, { headers: { 'X-API-Key': API_KEY } })
-  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(json => console.log(json));`}
-                        />
-                      </TabsContent>
-                      <TabsContent
-                        value="get-users-response"
-                        id="get-users-response"
-                        className="mt-3"
-                      >
-                        <div className="text-foreground font-medium">
-                          Example response (200)
-                        </div>
-                        <CodeBlock
-                          lang="json"
-                          code={`{
-  "id": "usr_01hv2x7y8z9a0b1c2d3e4f5g6h",
-  "kyc_email": "jane.d.doe@gmail.com",
-  "full_name": "Jane Doe",
-  "dob": "1998-11-20",
-  "risk_score": 74,
-  "is_flagged": true,
-  "created_at": "2023-05-01T12:00:00Z",
-  "store_accounts": [
-    {
-      "id": "sca_01hv2w8m3n4p5q6r7s8t9u0v1w",
-      "user_id": "usr_01hv2x7y8z9a0b1c2d3e4f5g6h",
-      "store_id": "8765-uuid-of-store",
-      "email_at_store": "jane.doe.promo@outlook.com",
-      "claims": [
-        {
-          "id": "clm_01hv2w4m8x2r9ngq7g9f7c2a1b",
-          "store_account_id": "sca_01hv2w8m3n4p5q6r7s8t9u0v1w",
-          "status": "PENDING",
-          "claim_data": [{"item_name": "iPhone 16 Max", "category": "Electronics", "price": 1299.99, "quantity": 1, "url": "https://store.example.com/product/123"}],
-          "created_at": "2025-09-13T23:00:12Z"
-        }
-      ]
-    }
-  ]
-}`}
-                        />
-                      </TabsContent>
-                    </Tabs>
+                  <div className="rounded-lg border bg-card p-4">
+                    <div className="text-foreground font-medium mb-2">Example Webhook Payload</div>
+                    <p className="mb-2">This is an example of the JSON data your server would receive for a <code>claim.risk_assessment.high</code> event.</p>
+                    <CodeBlock
+                      lang="json"
+                      code={`{\n  "event_id": "evt_uuid_123",\n  "event_type": "claim.risk_assessment.high",\n  "created_at": "2025-11-01T10:00:00Z",\n  "data": {\n    "claim_id": "claim_uuid_C3",\n    "user_id": "user_uuid_111AAA",\n    "kyc_email": "jane.d.doe@gmail.com",\n    "risk_score": 85,\n    "reasons": ["Multiple accounts at store", "High-value item in claim"]\n  }\n}`}
+                    />
                   </div>
                 </aside>
               </div>
@@ -595,41 +383,29 @@ fetch(BASE_URL + '/users/' + kycEmail, { headers: { 'X-API-Key': API_KEY } })
             <section id="error-handling" className="scroll-mt-24">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                 <div className="md:col-span-5 space-y-3">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    Error Handling
-                  </h3>
+                  <h3 className="text-xl font-semibold text-foreground">Error Handling</h3>
                   <p>
-                    Errors return JSON with a single <code>detail</code> field.
+                    Bastion uses conventional HTTP response codes to indicate the success or failure of a request. All error responses will return a JSON object with a <code>detail</code> key containing a human-readable error message.
                   </p>
                   <ul className="list-disc pl-5">
                     <li>
-                      <code>400</code> Bad Request
+                      <strong>400 Bad Request</strong> — Invalid Request. The request body was malformed or missing required parameters.
                     </li>
                     <li>
-                      <code>401</code> Unauthorized
+                      <strong>401 Unauthorized</strong> — Authentication Error. No API key was provided, or the key is invalid.
                     </li>
                     <li>
-                      <code>403</code> Forbidden
+                      <strong>404 Not Found</strong> — Resource Not Found. The requested resource does not exist.
                     </li>
                     <li>
-                      <code>404</code> Not Found
-                    </li>
-                    <li>
-                      <code>500</code> Internal Server Error
+                      <strong>500 Server Error</strong> — Internal Bastion Error. Something went wrong on our end.
                     </li>
                   </ul>
                 </div>
                 <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
                   <div className="rounded-lg border bg-card p-4">
-                    <div className="text-foreground font-medium mb-2">
-                      Error response
-                    </div>
-                    <CodeBlock
-                      lang="json"
-                      code={`{
-  "detail": "A human-readable description of the error."
-}`}
-                    />
+                    <div className="text-foreground font-medium mb-2">Error response</div>
+                    <CodeBlock lang="json" code={`{\n  "detail": "A human-readable description of the error."\n}`} />
                   </div>
                 </aside>
               </div>
