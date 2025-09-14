@@ -39,8 +39,8 @@ async def add_cors_header(request, call_next):
 
 # Add CORS middleware for frontend connection
 origins = [
-    "https://bastion-frontend.vercel.app",
-    "https://storefront-frontend.vercel.app", 
+    "https://bastion-frontend-wine.vercel.app",
+    "https://storefront-frontend-wine.vercel.app", 
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:5173",
@@ -48,7 +48,7 @@ origins = [
 ]
 
 # Allow all origins in development
-if os.getenv("VERCEL_ENV") != "production":
+if os.getenv("RAILWAY_ENVIRONMENT") != "production":
     origins = ["*"]
 
 app.add_middleware(
