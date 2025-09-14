@@ -40,11 +40,14 @@ async def add_cors_header(request, call_next):
 # Add CORS middleware for frontend connection
 origins = [
     "https://bastion-frontend-wine.vercel.app",
-    "https://storefront-frontend-wine.vercel.app", 
+    "https://storefront-frontend-wine.vercel.app",
+    "https://bastion-70xw3el8y-samuil-georgievs-projects.vercel.app",
+    "https://storefront-70xw3el8y-samuil-georgievs-projects.vercel.app",
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:5173",
-    "http://localhost:5174"
+    "http://localhost:5174",
+    "*"
 ]
 
 # Allow all origins in development
