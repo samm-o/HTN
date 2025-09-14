@@ -1,7 +1,7 @@
 // API configuration and helper functions for Project BASTION frontend
 
 // Normalize base URL from env: use VITE_API_BASE_URL if set, otherwise default to relative URLs
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const API_BASE_URL = '';
 
 // Join base and endpoint safely without double slashes
 const joinUrl = (base: string, endpoint: string) => {
