@@ -365,8 +365,7 @@ export default function UserList() {
                     Suspicious Disputes
                   </p>
                   <p className="text-3xl font-bold text-foreground">
-                    {selectedUser.user.total_claims -
-                      selectedUser.user.approved_claims}
+                    {selectedUser.user.total_claims}
                   </p>
                 </div>
 
@@ -430,6 +429,9 @@ export default function UserList() {
                       <TableHead className="text-muted-foreground">
                         Item
                       </TableHead>
+                      <TableHead className="text-muted-foreground">
+                        Quantity
+                      </TableHead>
                       <TableHead className="text-muted-foreground text-right">
                         Status
                       </TableHead>
@@ -452,6 +454,15 @@ export default function UserList() {
                             {claim.items.map((item, itemIndex) => (
                               <div key={itemIndex} className="mb-1">
                                 {item.item_name}
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          <div className="text-sm">
+                            {claim.items.map((item, itemIndex) => (
+                              <div key={itemIndex} className="mb-1">
+                                {item.quantity}
                               </div>
                             ))}
                           </div>

@@ -26,20 +26,11 @@ async def startup_event():
     asyncio.create_task(risk_score_cache.initialize_cache())
 
 # Add CORS middleware for frontend connection
-_origins = [
-    "http://localhost:3000",
-    "http://localhost:8080",
-    "http://localhost:8081",
-    "http://localhost:8082",
-    storefront_url,
-    bastion_frontend_url,
-]
-# Filter out any Nones or empty strings
-allow_origin_list = [o for o in _origins if o]
+origins = ['*']
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origin_list,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
