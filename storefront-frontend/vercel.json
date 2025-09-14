@@ -10,8 +10,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_BASTION_API_URL": "@vite_bastion_api_url"
-  }
+  ]
 }
