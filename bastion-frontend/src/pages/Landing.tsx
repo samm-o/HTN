@@ -43,7 +43,7 @@ export default function Landing() {
               onClick={() => navigate("/dashboard")}
               className="px-5 py-3 rounded-md bg-gray-800 hover:bg-gray-900 text-slate-100 font-semibold transition shadow-md"
             >
-              Go to Dashboard
+              Dashboard Demo
             </button>
           </div>
         </div>
