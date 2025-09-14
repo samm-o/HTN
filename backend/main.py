@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
-from api.customer import router as customer_router
-from api.user_api import router as user_router
-from api.store_api import router as store_router
-from api.claim_api import router as claim_router
-from api.ml_fraud_api import router as ml_fraud_router
-from api.admin_api import router as admin_router
-from api.analytics_api import router as analytics_router
-from api.users_api import router as users_router
+from routes.customer import router as customer_router
+from routes.user_api import router as user_router
+from routes.store_api import router as store_router
+from routes.claim_api import router as claim_router
+from routes.ml_fraud_api import router as ml_fraud_router
+from routes.admin_api import router as admin_router
+from routes.analytics_api import router as analytics_router
+from routes.users_api import router as users_router
 from services.risk_score_cache import risk_score_cache
 import asyncio
 import os
