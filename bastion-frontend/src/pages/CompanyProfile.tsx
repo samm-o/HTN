@@ -120,7 +120,7 @@ export default function CompanyProfile() {
   const suspiciousValues = dashboardData.suspiciousDisputes.map(d => d.value);
   const approvedValues = dashboardData.approvedDisputes.map(d => d.value);
   const percentSeries = dashboardData.suspiciousDisputes.map((s, i) => {
-    const val = ((dashboardData.approvedDisputes[i]?.value || 0) / s.value) * 100;
+    const val = s.value === 0 ? 0 : ((dashboardData.approvedDisputes[i]?.value || 0) / s.value) * 100;
     return parseFloat(val.toFixed(1));
   });
 
@@ -134,7 +134,7 @@ export default function CompanyProfile() {
 
     return dashboardData.suspiciousDisputes.map((suspicious, index) => ({
       date: suspicious.date,
-      value: ((dashboardData.approvedDisputes[index]?.value || 0) / suspicious.value) * 100,
+      value: suspicious.value === 0 ? 0 : ((dashboardData.approvedDisputes[index]?.value || 0) / suspicious.value) * 100,
     }));
   };
 
@@ -208,7 +208,7 @@ export default function CompanyProfile() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="7d">7 Days</SelectItem>
-            <SelectItem value="1m">1 Month</SelectItem>
+            <SelectItem value="1m">30 Days</SelectItem>
             <SelectItem value="3m">3 Months</SelectItem>
             <SelectItem value="1y">1 Year</SelectItem>
           </SelectContent>
@@ -342,6 +342,12 @@ export default function CompanyProfile() {
                       padding: '6px 8px'
                     }}
                     labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
+                    formatter={(value: number, name: string) => {
+                      if (selectedMetric === 'percentage') {
+                        return [`${value.toFixed(1)}%`, name];
+                      }
+                      return [value, name];
+                    }}
                   />
                   <Area type="monotone" dataKey="value" stroke="none" fill="url(#lineGradient)" />
                   <Line

@@ -52,22 +52,20 @@ async def get_dashboard_metrics(
                 week_start = claim_date - timedelta(days=claim_date.weekday())
                 date_key = week_start.strftime("%b %d")
             elif time_range == "3m":
-                # Group by month
-                date_key = claim_date.strftime("%b %d")
+                # Group by 2 weeks (14 days)
+                days_since_epoch = (claim_date.replace(tzinfo=None) - datetime(1970, 1, 1)).days
+                week_group = days_since_epoch // 14
+                week_start = datetime(1970, 1, 1) + timedelta(days=week_group * 14)
+                date_key = week_start.strftime("%b %d")
             else:  # 1y
-                # Group by quarter
-                quarter = (claim_date.month - 1) // 3 + 1
-                date_key = f"Q{quarter} {claim_date.year}"
+                # Group by month
+                date_key = claim_date.strftime("%b %Y")
             
             if date_key not in date_groups:
                 date_groups[date_key] = {"suspicious": 0, "approved": 0}
             
-            # Determine if suspicious (high risk score or flagged user)
-            user_data = claim.get('users', {})
-            is_suspicious = user_data.get('risk_score', 0) > 70 or user_data.get('is_flagged', False)
-            
-            if is_suspicious:
-                date_groups[date_key]["suspicious"] += 1
+            # All disputes are suspicious disputes
+            date_groups[date_key]["suspicious"] += 1
             
             if claim.get('status') == 'APPROVED':
                 date_groups[date_key]["approved"] += 1
@@ -206,23 +204,22 @@ async def get_summary_stats(time_range: str = Query("7d", regex="^(7d|1m|3m|1y)$
     try:
         # Get claims for the period
         claims_response = supabase.table("claims").select(
-            "id, status, users!inner(risk_score, is_flagged)"
+            "id, status"
         ).gte("created_at", start_date.isoformat()).execute()
         
         claims = claims_response.data if claims_response.data else []
         
-        total_suspicious = 0
-        for claim in claims:
-            user_data = claim.get('users', {})
-            is_suspicious = user_data.get('risk_score', 0) > 70 or user_data.get('is_flagged', False)
-            if is_suspicious:
-                total_suspicious += 1
+        # Total disputes = ALL claims (suspicious disputes is actually total disputes)
+        total_disputes = len(claims)
         
+        # Approved disputes = only APPROVED claims
         total_approved = sum(1 for claim in claims if claim.get('status') == 'APPROVED')
-        approval_rate = (total_approved / total_suspicious * 100) if total_suspicious > 0 else 0
+        
+        # Approval rate = (approved / total) * 100% (will always be <= 100%)
+        approval_rate = (total_approved / total_disputes * 100) if total_disputes > 0 else 0
         
         return {
-            "totalSuspiciousDisputes": total_suspicious,
+            "totalSuspiciousDisputes": total_disputes,  # This is actually total disputes
             "totalApprovedDisputes": total_approved,
             "approvalRate": round(approval_rate, 1)
         }

@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """
-Simple database seeding script for Project BASTION
-Works directly with Supabase tables
+Realistic fraud database seeding script for Project BASTION
+Creates 365+ claims over last year with fraud-prone items for realistic charts
 """
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.supabase_client import get_supabase
+from datetime import datetime, timedelta
+import random
 
-def seed_demo_data():
-    """Seed database with demo data using direct table operations"""
-    print("🌱 Seeding database with demo data...")
+def seed_data():
+    """Seed database with realistic fraud demo data"""
+    print("🌱 Seeding database with realistic fraud demo data...")
     
     supabase = get_supabase()
     
     try:
-        # Clear existing data (in reverse order due to foreign keys)
+        # Clear existing data
         print("  🧹 Clearing existing data...")
         supabase.table('claims').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
         supabase.table('users').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
@@ -25,411 +27,199 @@ def seed_demo_data():
         # Insert stores
         print("  🏪 Creating stores...")
         stores_data = [
-            {'name': 'Amazon'},
-            {'name': 'Best Buy'},
-            {'name': 'Target'},
-            {'name': 'Walmart'},
-            {'name': 'Costco'},
-            {'name': 'Canadian Tire'},
-            {'name': 'Loblaws'}
+            {'name': 'Amazon'}, {'name': 'Best Buy'}, {'name': 'Target'},
+            {'name': 'Walmart'}, {'name': 'Costco'}, {'name': 'Canadian Tire'},
+            {'name': 'Loblaws'}, {'name': 'Home Depot'}, {'name': 'Shoppers Drug Mart'}
         ]
         stores_result = supabase.table('stores').insert(stores_data).execute()
-        print(f"    ✅ Created {len(stores_result.data)} stores")
         
-        # Insert users with fixed UUIDs for consistency
+        # Insert 25 users
         print("  👤 Creating users...")
-        users_data = [
-            # Low risk users
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440001',
-                'full_name': 'John Smith',
-                'dob': '1985-03-15',
-                'risk_score': 25,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440002',
-                'full_name': 'Sarah Johnson',
-                'dob': '1990-07-22',
-                'risk_score': 45,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440004',
-                'full_name': 'Emily Davis',
-                'dob': '1992-05-30',
-                'risk_score': 15,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440006',
-                'full_name': 'Lisa Anderson',
-                'dob': '1991-01-25',
-                'risk_score': 35,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440008',
-                'full_name': 'Anna Martinez',
-                'dob': '1993-08-17',
-                'risk_score': 20,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440009',
-                'full_name': 'Robert Chen',
-                'dob': '1986-12-10',
-                'risk_score': 30,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440010',
-                'full_name': 'Jessica Williams',
-                'dob': '1989-04-03',
-                'risk_score': 40,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440011',
-                'full_name': 'Kevin Thompson',
-                'dob': '1994-09-28',
-                'risk_score': 28,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440012',
-                'full_name': 'Amanda Rodriguez',
-                'dob': '1987-06-14',
-                'risk_score': 35,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440013',
-                'full_name': 'Mark Johnson',
-                'dob': '1990-11-22',
-                'risk_score': 42,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440014',
-                'full_name': 'Rachel Green',
-                'dob': '1988-02-18',
-                'risk_score': 38,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440015',
-                'full_name': 'Daniel Lee',
-                'dob': '1992-08-05',
-                'risk_score': 32,
-                'is_flagged': False
-            },
-            # Medium risk users
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440016',
-                'full_name': 'Michelle Parker',
-                'dob': '1985-10-12',
-                'risk_score': 55,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440017',
-                'full_name': 'Christopher Moore',
-                'dob': '1991-03-27',
-                'risk_score': 60,
-                'is_flagged': False
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440018',
-                'full_name': 'Stephanie Clark',
-                'dob': '1989-07-15',
-                'risk_score': 58,
-                'is_flagged': False
-            },
-            # High risk users (flagged)
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440003',
-                'full_name': 'Michael Brown',
-                'dob': '1988-11-08',
-                'risk_score': 85,
-                'is_flagged': True
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440005',
-                'full_name': 'David Wilson',
-                'dob': '1987-09-12',
-                'risk_score': 70,
-                'is_flagged': True
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440007',
-                'full_name': 'James Taylor',
-                'dob': '1989-12-03',
-                'risk_score': 90,
-                'is_flagged': True
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440019',
-                'full_name': 'Alexander Black',
-                'dob': '1984-05-20',
-                'risk_score': 78,
-                'is_flagged': True
-            },
-            {
-                'id': '550e8400-e29b-41d4-a716-446655440020',
-                'full_name': 'Victoria Stone',
-                'dob': '1986-01-08',
-                'risk_score': 82,
-                'is_flagged': True
-            }
-        ]
+        users_data = []
+        for i in range(1, 26):
+            risk_score = random.randint(15, 95)
+            users_data.append({
+                'id': f'550e8400-e29b-41d4-a716-44665544{i:04d}',
+                'full_name': f'User {i}',
+                'dob': f'198{random.randint(0,9)}-{random.randint(1,12):02d}-{random.randint(1,28):02d}',
+                'risk_score': risk_score,
+                'is_flagged': risk_score > 70
+            })
         users_result = supabase.table('users').insert(users_data).execute()
-        print(f"    ✅ Created {len(users_result.data)} users")
         
-        # Insert claims with realistic data and staggered dates
-        print("  📋 Creating claims...")
-        from datetime import datetime, timedelta
+        # Generate 365+ claims with staggered dates over last year
+        print("  📋 Creating 365+ claims with staggered dates over last year...")
         
-        # Generate dates over the last 30 days for realistic chart data
         base_date = datetime.now()
-        date_offsets = [
-            -30, -29, -28, -27, -26, -25, -24, -23, -22, -21,  # Week 1
-            -20, -19, -18, -17, -16, -15, -14, -13, -12, -11,  # Week 2
-            -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0         # Weeks 3-4
+        # Realistic fraud-prone items with proper distribution
+        # 45% Technology, 27% Apparel, 15% Jewelry, 8% Furniture, 5% Other
+        technology_items = [
+            {"item_name": "iPhone 15 Pro Max", "category": "technology", "price": 1199.99},
+            {"item_name": "iPhone 14 Pro", "category": "technology", "price": 999.99},
+            {"item_name": "Samsung Galaxy S24 Ultra", "category": "technology", "price": 1299.99},
+            {"item_name": "MacBook Pro 16-inch", "category": "technology", "price": 2499.99},
+            {"item_name": "MacBook Air M2", "category": "technology", "price": 1199.99},
+            {"item_name": "iPad Pro 12.9-inch", "category": "technology", "price": 1099.99},
+            {"item_name": "AirPods Pro 2", "category": "technology", "price": 249.99},
+            {"item_name": "Sony WH-1000XM5", "category": "technology", "price": 399.99},
+            {"item_name": "PlayStation 5", "category": "technology", "price": 499.99},
+            {"item_name": "Xbox Series X", "category": "technology", "price": 499.99},
+            {"item_name": "Nintendo Switch OLED", "category": "technology", "price": 349.99},
+            {"item_name": "Apple Watch Ultra 2", "category": "technology", "price": 799.99},
+            {"item_name": "Samsung 65\" QLED TV", "category": "technology", "price": 1299.99},
+            {"item_name": "Canon EOS R5", "category": "technology", "price": 3899.99},
+            {"item_name": "Sony A7R V", "category": "technology", "price": 3898.99},
+            {"item_name": "DJI Mini 4 Pro", "category": "technology", "price": 759.99},
+            {"item_name": "Gaming Laptop RTX 4080", "category": "technology", "price": 2299.99},
+            {"item_name": "Surface Pro 9", "category": "technology", "price": 999.99}
         ]
         
-        claims_data = [
-            # Low risk users - approved claims
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440001',
-                'store_id': stores_result.data[0]['id'],  # Amazon
-                'email_at_store': 'john.smith@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Wireless Headphones", "category": "electronics", "price": 79.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440001',
-                'store_id': stores_result.data[2]['id'],  # Target
-                'email_at_store': 'john.smith@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Cotton T-Shirt", "category": "clothing", "price": 19.99, "quantity": 2}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440004',
-                'store_id': stores_result.data[2]['id'],  # Target
-                'email_at_store': 'emily.davis@university.edu',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Textbook - Biology", "category": "books", "price": 89.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440006',
-                'store_id': stores_result.data[3]['id'],  # Walmart
-                'email_at_store': 'lisa.anderson@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Winter Coat", "category": "clothing", "price": 129.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440008',
-                'store_id': stores_result.data[2]['id'],  # Target
-                'email_at_store': 'anna.martinez@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Kitchen Appliance", "category": "home", "price": 49.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440009',
-                'store_id': stores_result.data[0]['id'],  # Amazon
-                'email_at_store': 'robert.chen@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Bluetooth Speaker", "category": "electronics", "price": 59.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440010',
-                'store_id': stores_result.data[1]['id'],  # Best Buy
-                'email_at_store': 'jessica.williams@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Tablet Case", "category": "electronics", "price": 29.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440011',
-                'store_id': stores_result.data[4]['id'],  # Costco
-                'email_at_store': 'kevin.thompson@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Protein Powder", "category": "health", "price": 39.99, "quantity": 2}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440012',
-                'store_id': stores_result.data[5]['id'],  # Canadian Tire
-                'email_at_store': 'amanda.rodriguez@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Tool Set", "category": "tools", "price": 89.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440013',
-                'store_id': stores_result.data[6]['id'],  # Loblaws
-                'email_at_store': 'mark.johnson@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Organic Food Bundle", "category": "grocery", "price": 67.50, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440014',
-                'store_id': stores_result.data[0]['id'],  # Amazon
-                'email_at_store': 'rachel.green@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Yoga Mat", "category": "fitness", "price": 34.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440015',
-                'store_id': stores_result.data[1]['id'],  # Best Buy
-                'email_at_store': 'daniel.lee@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "USB Cable", "category": "electronics", "price": 15.99, "quantity": 3}]
-            },
-            
-            # Medium risk users - mixed status
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440002',
-                'store_id': stores_result.data[1]['id'],  # Best Buy
-                'email_at_store': 'sarah.j@gmail.com',
-                'status': 'PENDING',
-                'claim_data': [{"item_name": "MacBook Pro 14-inch", "category": "electronics", "price": 1999.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440016',
-                'store_id': stores_result.data[0]['id'],  # Amazon
-                'email_at_store': 'michelle.parker@email.com',
-                'status': 'PENDING',
-                'claim_data': [{"item_name": "Smart Watch", "category": "electronics", "price": 299.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440017',
-                'store_id': stores_result.data[2]['id'],  # Target
-                'email_at_store': 'christopher.moore@email.com',
-                'status': 'DENIED',
-                'claim_data': [{"item_name": "Designer Sunglasses", "category": "luxury", "price": 189.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440018',
-                'store_id': stores_result.data[3]['id'],  # Walmart
-                'email_at_store': 'stephanie.clark@email.com',
-                'status': 'APPROVED',
-                'claim_data': [{"item_name": "Coffee Maker", "category": "home", "price": 79.99, "quantity": 1}]
-            },
-            
-            # High risk users (flagged) - mostly denied/pending
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440003',
-                'store_id': stores_result.data[0]['id'],  # Amazon
-                'email_at_store': 'mike.brown@email.com',
-                'status': 'DENIED',
-                'claim_data': [
-                    {"item_name": "iPhone 15 Pro Max", "category": "electronics", "price": 1199.99, "quantity": 1},
-                    {"item_name": "AirPods Pro", "category": "electronics", "price": 249.99, "quantity": 1}
-                ]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440003',
-                'store_id': stores_result.data[1]['id'],  # Best Buy
-                'email_at_store': 'michael.b@tempmail.com',
-                'status': 'PENDING',
-                'claim_data': [{"item_name": "Gaming Laptop", "category": "electronics", "price": 2499.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440005',
-                'store_id': stores_result.data[4]['id'],  # Costco
-                'email_at_store': 'd.wilson@different.com',
-                'status': 'DENIED',
-                'claim_data': [{"item_name": "Premium Vitamins", "category": "health", "price": 79.99, "quantity": 3}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440005',
-                'store_id': stores_result.data[0]['id'],  # Amazon
-                'email_at_store': 'david.wilson@email.com',
-                'status': 'DENIED',
-                'claim_data': [{"item_name": "Smart TV 65-inch", "category": "electronics", "price": 899.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440007',
-                'store_id': stores_result.data[1]['id'],  # Best Buy
-                'email_at_store': 'james.taylor@email.com',
-                'status': 'DENIED',
-                'claim_data': [{"item_name": "4K TV 65-inch", "category": "electronics", "price": 1299.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440007',
-                'store_id': stores_result.data[0]['id'],  # Amazon
-                'email_at_store': 'j.taylor@temp.com',
-                'status': 'DENIED',
-                'claim_data': [{"item_name": "Professional Camera", "category": "electronics", "price": 1899.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440007',
-                'store_id': stores_result.data[4]['id'],  # Costco
-                'email_at_store': 'jtaylor123@fake.org',
-                'status': 'DENIED',
-                'claim_data': [{"item_name": "Diamond Ring", "category": "jewelry", "price": 2999.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440019',
-                'store_id': stores_result.data[0]['id'],  # Amazon
-                'email_at_store': 'alex.black@suspicious.com',
-                'status': 'DENIED',
-                'claim_data': [{"item_name": "Luxury Watch", "category": "luxury", "price": 1599.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440019',
-                'store_id': stores_result.data[2]['id'],  # Target
-                'email_at_store': 'alexander.b@temp.net',
-                'status': 'PENDING',
-                'claim_data': [{"item_name": "Power Tools Set", "category": "tools", "price": 459.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440020',
-                'store_id': stores_result.data[1]['id'],  # Best Buy
-                'email_at_store': 'victoria.stone@fake.com',
-                'status': 'DENIED',
-                'claim_data': [{"item_name": "Gaming Console", "category": "electronics", "price": 499.99, "quantity": 1}]
-            },
-            {
-                'user_id': '550e8400-e29b-41d4-a716-446655440020',
-                'store_id': stores_result.data[3]['id'],  # Walmart
-                'email_at_store': 'v.stone@different.org',
-                'status': 'PENDING',
-                'claim_data': [{"item_name": "Designer Handbag", "category": "luxury", "price": 389.99, "quantity": 1}]
-            }
+        apparel_items = [
+            {"item_name": "Air Jordan 1 Retro High", "category": "apparel", "price": 170.00},
+            {"item_name": "Nike Dunk Low", "category": "apparel", "price": 100.00},
+            {"item_name": "Yeezy Boost 350 V2", "category": "apparel", "price": 220.00},
+            {"item_name": "Off-White Hoodie", "category": "apparel", "price": 595.00},
+            {"item_name": "Supreme Box Logo Tee", "category": "apparel", "price": 198.00},
+            {"item_name": "Canada Goose Parka", "category": "apparel", "price": 1295.00},
+            {"item_name": "Stone Island Jacket", "category": "apparel", "price": 675.00},
+            {"item_name": "Balenciaga Triple S", "category": "apparel", "price": 1050.00},
+            {"item_name": "Golden Goose Sneakers", "category": "apparel", "price": 495.00},
+            {"item_name": "Moncler Down Jacket", "category": "apparel", "price": 1590.00},
+            {"item_name": "Travis Scott Jordan 1", "category": "apparel", "price": 1500.00},
+            {"item_name": "Fear of God Essentials Hoodie", "category": "apparel", "price": 100.00}
         ]
         
+        jewelry_items = [
+            {"item_name": "Rolex Submariner", "category": "jewelry", "price": 8100.00},
+            {"item_name": "Cartier Love Bracelet", "category": "jewelry", "price": 6300.00},
+            {"item_name": "Tiffany & Co. Engagement Ring", "category": "jewelry", "price": 5200.00},
+            {"item_name": "Apple Watch Hermès", "category": "jewelry", "price": 1299.00},
+            {"item_name": "Pandora Charm Bracelet", "category": "jewelry", "price": 299.99},
+            {"item_name": "14K Gold Chain Necklace", "category": "jewelry", "price": 899.99},
+            {"item_name": "Diamond Stud Earrings", "category": "jewelry", "price": 1599.99},
+            {"item_name": "Omega Speedmaster", "category": "jewelry", "price": 5350.00}
+        ]
+        
+        furniture_items = [
+            {"item_name": "Herman Miller Aeron Chair", "category": "furniture", "price": 1395.00},
+            {"item_name": "West Elm Mid-Century Sofa", "category": "furniture", "price": 1299.00},
+            {"item_name": "Restoration Hardware Dining Table", "category": "furniture", "price": 2495.00},
+            {"item_name": "CB2 Velvet Sectional", "category": "furniture", "price": 1899.00}
+        ]
+        
+        other_items = [
+            {"item_name": "Dyson V15 Detect", "category": "home", "price": 749.99},
+            {"item_name": "KitchenAid Stand Mixer", "category": "home", "price": 379.99},
+            {"item_name": "Vitamix Blender", "category": "home", "price": 549.95}
+        ]
+        
+        # Create weighted item pool based on fraud distribution
+        items_pool = (
+            technology_items * 9 +  # 45% weight
+            apparel_items * 5 +     # 27% weight  
+            jewelry_items * 3 +     # 15% weight
+            furniture_items * 2 +   # 8% weight
+            other_items * 1         # 5% weight
+        )
+        
+        claims_data = []
+        
+        # Generate claims over last 365 days for better 3m/1y charts
+        for day_offset in range(-365, 1):
+            claim_date = base_date + timedelta(days=day_offset)
+            
+            # Variable claim volume based on time period and day of week
+            # More recent = more claims, weekdays = more claims
+            if day_offset > -30:  # Last 30 days - high volume
+                base_claims = random.randint(3, 6)
+            elif day_offset > -90:  # 30-90 days ago - medium volume  
+                base_claims = random.randint(2, 4)
+            elif day_offset > -180:  # 90-180 days ago - lower volume
+                base_claims = random.randint(1, 3)
+            else:  # 180+ days ago - lowest volume
+                base_claims = random.randint(1, 2)
+            
+            # Weekend adjustment (less activity on weekends)
+            if claim_date.weekday() >= 5:  # Saturday/Sunday
+                daily_claims = max(1, base_claims - 1)
+            else:
+                daily_claims = base_claims
+            
+            for _ in range(daily_claims):
+                user = random.choice(users_result.data)
+                store = random.choice(stores_result.data)
+                item = random.choice(items_pool)
+                
+                # Realistic fraud patterns based on item value and user risk
+                item_value = item['price']
+                user_risk = user['risk_score']
+                
+                # High-value items (>$1000) are more likely to be flagged
+                high_value_item = item_value > 1000
+                
+                # Status logic based on realistic fraud detection patterns
+                if user_risk > 70:  # High risk users
+                    if high_value_item:
+                        # High risk + high value = almost always denied
+                        status = random.choices(['APPROVED', 'DENIED', 'PENDING'], weights=[5, 80, 15])[0]
+                    else:
+                        # High risk + lower value = mostly denied but some slip through
+                        status = random.choices(['APPROVED', 'DENIED', 'PENDING'], weights=[15, 70, 15])[0]
+                elif user_risk > 50:  # Medium risk users
+                    if high_value_item:
+                        # Medium risk + high value = careful review
+                        status = random.choices(['APPROVED', 'DENIED', 'PENDING'], weights=[40, 35, 25])[0]
+                    else:
+                        # Medium risk + lower value = mostly approved
+                        status = random.choices(['APPROVED', 'DENIED', 'PENDING'], weights=[70, 20, 10])[0]
+                else:  # Low risk users
+                    if high_value_item:
+                        # Low risk + high value = some scrutiny but mostly approved
+                        status = random.choices(['APPROVED', 'DENIED', 'PENDING'], weights=[75, 10, 15])[0]
+                    else:
+                        # Low risk + lower value = almost always approved
+                        status = random.choices(['APPROVED', 'DENIED', 'PENDING'], weights=[90, 5, 5])[0]
+                
+                # Generate realistic email patterns for fraudsters
+                if user_risk > 70:
+                    # High risk users often use suspicious email patterns
+                    email_patterns = [
+                        f"user{user['id'][-4:]}@tempmail.com",
+                        f"buyer{random.randint(100,999)}@gmail.com", 
+                        f"customer{user['id'][-3:]}@yahoo.com",
+                        f"temp{random.randint(10,99)}@outlook.com"
+                    ]
+                    email = random.choice(email_patterns)
+                else:
+                    # Low/medium risk users have normal emails
+                    email = f"user{user['id'][-4:]}@email.com"
+                
+                claims_data.append({
+                    'user_id': user['id'],
+                    'store_id': store['id'],
+                    'email_at_store': email,
+                    'status': status,
+                    'claim_data': [item],
+                    'created_at': claim_date.isoformat()
+                })
+        
+        # Insert all claims
         claims_result = supabase.table('claims').insert(claims_data).execute()
         print(f"    ✅ Created {len(claims_result.data)} claims")
         
-        print("\n✅ Demo data seeded successfully!")
+        print(f"\n✅ Realistic fraud data seeded successfully!")
         print(f"📊 Summary: {len(stores_result.data)} stores, {len(users_result.data)} users, {len(claims_result.data)} claims")
+        
+        # Print statistics
+        approved = len([c for c in claims_data if c['status'] == 'APPROVED'])
+        denied = len([c for c in claims_data if c['status'] == 'DENIED'])
+        pending = len([c for c in claims_data if c['status'] == 'PENDING'])
+        
+        print(f"📈 Claim Status: {approved} approved, {denied} denied, {pending} pending")
         
     except Exception as e:
         print(f"❌ Error seeding data: {e}")
         raise
 
-def clear_demo_data():
-    """Clear all demo data from the database"""
-    print("🧹 Clearing demo data...")
-    
-    try:
-        supabase = get_supabase()
-        
-        # Clear in reverse order due to foreign key constraints
-        supabase.table('claims').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
-        supabase.table('users').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
-        supabase.table('stores').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
-        
-        print("✅ Demo data cleared successfully!")
-        
-    except Exception as e:
-        print(f"❌ Error clearing data: {e}")
-        raise
-
 if __name__ == "__main__":
-    import sys
-    
-    if len(sys.argv) > 1 and sys.argv[1] == "clear":
-        clear_demo_data()
-    else:
-        seed_demo_data()
+    seed_data()
