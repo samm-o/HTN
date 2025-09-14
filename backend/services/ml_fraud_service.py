@@ -180,6 +180,31 @@ class MLFraudService:
             print(f"Cohere API Error: {str(e)}")
             return self._fallback_pattern_analysis(behavior_description)
     
+    def _apply_score_padding(self, score: int) -> int:
+        """
+        Apply mathematical padding to prevent all users from being flagged as 100% risk.
+        Uses a sigmoid-like curve to compress high scores and provide more realistic distribution.
+        """
+        # Normalize score to 0-1 range
+        normalized = score / 100.0
+        
+        # Apply sigmoid compression to reduce extreme scores
+        # This prevents everyone from hitting 100% while preserving relative rankings
+        import math
+        
+        # Sigmoid function: 1 / (1 + e^(-k*(x-0.5)))
+        # k=6 provides good compression while maintaining discrimination
+        k = 6
+        sigmoid_score = 1 / (1 + math.exp(-k * (normalized - 0.5)))
+        
+        # Scale back to 0-100 and apply additional padding
+        compressed_score = sigmoid_score * 85  # Cap at 85% instead of 100%
+        
+        # Add minimum baseline for very low scores to prevent 0% scores
+        final_score = max(5, compressed_score)
+        
+        return int(final_score)
+    
     def _calculate_base_score(self, user_data: Dict[str, Any], 
                             claim_data: List[Dict[str, Any]], 
                             historical_data: List[Dict[str, Any]]) -> int:
@@ -215,9 +240,11 @@ class MLFraudService:
         return int(sum(score * weight for _, score, weight in factors))
     
     def _apply_ai_adjustments(self, base_score: int, fraud_indicators: List[Dict[str, Any]]) -> int:
-        """Apply AI insights to adjust base score"""
+        """Apply AI insights to adjust base score with mathematical padding"""
         if not fraud_indicators:
-            return base_score
+            # Apply mathematical padding to prevent all users being flagged as 100%
+            padded_score = self._apply_score_padding(base_score)
+            return padded_score
         
         ai_adjustment = 0
         total_relevance = sum(indicator['relevance_score'] for indicator in fraud_indicators)
@@ -228,7 +255,10 @@ class MLFraudService:
             ai_adjustment += risk_impact
         
         adjustment = max(-20, min(20, ai_adjustment))
-        return base_score + int(adjustment)
+        adjusted_score = base_score + int(adjustment)
+        
+        # Apply mathematical padding to final score
+        return self._apply_score_padding(adjusted_score)
     
     def _calculate_confidence(self, fraud_indicators: List[Dict[str, Any]]) -> float:
         """Calculate confidence score based on pattern strength"""

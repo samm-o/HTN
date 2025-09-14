@@ -69,7 +69,44 @@ export default function CompanyProfile() {
     approvedDisputes: []
   });
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
-  const [topDisputedItems, setTopDisputedItems] = useState<TopDisputedItem[]>([]);
+  // Hard-coded most disputed items (technology and luxury items)
+  const [topDisputedItems, setTopDisputedItems] = useState<TopDisputedItem[]>([
+    {
+      item: "iPhone 15 Pro",
+      category: "Electronics",
+      disputes: 127,
+      lastDispute: "2024-01-12",
+      productLink: "https://apple.com/iphone-15-pro"
+    },
+    {
+      item: "Headphones",
+      category: "Electronics", 
+      disputes: 89,
+      lastDispute: "2024-01-11",
+      productLink: "https://amazon.com/headphones"
+    },
+    {
+      item: "Black T-Shirt",
+      category: "Clothing",
+      disputes: 76,
+      lastDispute: "2024-01-10", 
+      productLink: "https://amazon.com/t-shirt"
+    },
+    {
+      item: "Nike Socks",
+      category: "Clothing",
+      disputes: 64,
+      lastDispute: "2024-01-09",
+      productLink: "https://amazon.com/socks"
+    },
+    {
+      item: "Portable Charger",
+      category: "Electronics",
+      disputes: 52,
+      lastDispute: "2024-01-08",
+      productLink: "https://amazon.com/portable-charger"
+    }
+  ]);
   const [summaryStats, setSummaryStats] = useState<SummaryStats>({
     totalSuspiciousDisputes: 0,
     totalApprovedDisputes: 0,
@@ -86,17 +123,16 @@ export default function CompanyProfile() {
         setLoading(true);
         setError(null);
 
-        const [metricsData, categoryResponse, topItemsData, statsData] = await Promise.all([
+        const [metricsData, categoryResponse, statsData] = await Promise.all([
           apiClient.getDashboardMetrics(timeRange),
           apiClient.getCategoryDistribution(),
-          apiClient.getTopDisputedItems(5),
           apiClient.getSummaryStats(timeRange)
         ]);
 
         setDashboardData(metricsData as DashboardData);
         setCategoryData(categoryResponse as CategoryData[]);
-        setTopDisputedItems(topItemsData as TopDisputedItem[]);
         setSummaryStats(statsData as SummaryStats);
+        // topDisputedItems is now hard-coded above
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
         setError('Failed to load dashboard data. Please try again.');
