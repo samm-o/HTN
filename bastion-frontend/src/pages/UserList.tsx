@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,72 +11,134 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { apiClient } from "@/lib/api";
 
-// Sample user data
-const generateUsers = () => {
-  const users = [];
-  for (let i = 1; i <= 100; i++) {
-    const suspiciousDisputes = Math.floor(Math.random() * 500) + 50;
-    const approvedDisputes = Math.floor(Math.random() * suspiciousDisputes * 0.8) + 1;
-    users.push({
-      uuid: `usr-${i.toString().padStart(6, '0')}-${Math.random().toString(36).substr(2, 6)}`,
-      totalSuspiciousDisputes: suspiciousDisputes,
-      disputesApproved: approvedDisputes,
-      lastDisputeDate: new Date(2024, 0, Math.floor(Math.random() * 15) + 1).toISOString().split('T')[0],
-    });
-  }
-  return users;
-};
+// Interfaces for API data
+interface User {
+  id: string;
+  full_name: string;
+  created_at: string;
+  risk_score: number;
+  is_flagged: boolean;
+  total_disputes: number;
+  pending_disputes: number;
+  approved_disputes: number;
+  denied_disputes: number;
+  last_activity: string;
+}
 
-const generateUserDisputes = (userId: string) => {
-  const disputes = [];
-  const companies = ["Amazon", "eBay", "Shopify Store", "Target", "Walmart", "Best Buy"];
-  const categories = ["Electronics", "Clothing", "Home & Garden", "Sports", "Books"];
-  
-  for (let i = 1; i <= 25; i++) {
-    disputes.push({
-      date: new Date(2024, 0, Math.floor(Math.random() * 15) + 1).toISOString().split('T')[0],
-      company: companies[Math.floor(Math.random() * companies.length)],
-      category: categories[Math.floor(Math.random() * categories.length)],
-      itemLink: `https://example-store.com/item/${Math.floor(Math.random() * 10000)}`,
-    });
-  }
-  return disputes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-};
+interface UserDetails {
+  user: {
+    id: string;
+    full_name: string;
+    created_at: string;
+    risk_score: number;
+    is_flagged: boolean;
+    total_claims: number;
+    pending_claims: number;
+    approved_claims: number;
+    denied_claims: number;
+    total_claim_value: number;
+  };
+  claims: Array<{
+    id: string;
+    status: string;
+    created_at: string;
+    store_name: string;
+    items: Array<{
+      item_name: string;
+      category: string;
+      price: number;
+      quantity: number;
+    }>;
+    total_value: number;
+  }>;
+}
+
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
 
 const ITEMS_PER_PAGE = 10;
 
 export default function UserList() {
-  const [users] = useState(generateUsers());
+  const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [selectedUserDisputes, setSelectedUserDisputes] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null);
   const [disputePage, setDisputePage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    limit: ITEMS_PER_PAGE,
+    total: 0,
+    pages: 0
+  });
 
-  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentUsers = users.slice(startIndex, endIndex);
+  // Fetch users from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await apiClient.getUsersList(currentPage, ITEMS_PER_PAGE) as any;
+        setUsers(response.users as User[]);
+        setPagination(response.pagination || { page: 1, limit: ITEMS_PER_PAGE, total: 0, pages: 0 });
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
+        setError('Failed to load users. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleViewDetails = (user: any) => {
-    setSelectedUser(user);
-    setSelectedUserDisputes(generateUserDisputes(user.uuid));
-    setDisputePage(1);
-    setIsModalOpen(true);
+    fetchUsers();
+  }, [currentPage]);
+
+  const handleViewDetails = async (user: User) => {
+    try {
+      const userDetails = await apiClient.getUserDetails(user.id);
+      setSelectedUser(userDetails as UserDetails);
+      setDisputePage(1);
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error('Failed to fetch user details:', err);
+      setError('Failed to load user details. Please try again.');
+    }
   };
 
-  const disputeTotalPages = Math.ceil(selectedUserDisputes.length / ITEMS_PER_PAGE);
+  const disputeTotalPages = selectedUser ? Math.ceil(selectedUser.claims.length / ITEMS_PER_PAGE) : 0;
   const disputeStartIndex = (disputePage - 1) * ITEMS_PER_PAGE;
   const disputeEndIndex = disputeStartIndex + ITEMS_PER_PAGE;
-  const currentDisputes = selectedUserDisputes.slice(disputeStartIndex, disputeEndIndex);
+  const currentDisputes = selectedUser ? selectedUser.claims.slice(disputeStartIndex, disputeEndIndex) : [];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading users...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-red-500">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-foreground">User List</h2>
         <div className="text-sm text-muted-foreground">
-          Showing {startIndex + 1}-{Math.min(endIndex, users.length)} of {users.length} users
+          Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)} of {pagination.total} users
         </div>
       </div>
 
@@ -90,21 +152,23 @@ export default function UserList() {
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="border-border">
                 <TableHead className="text-muted-foreground">User ID</TableHead>
-                <TableHead className="text-muted-foreground">Suspicious Disputes</TableHead>
-                <TableHead className="text-muted-foreground">Disputes Approved</TableHead>
-                <TableHead className="text-muted-foreground">Last Dispute Date</TableHead>
+                <TableHead className="text-muted-foreground">Full Name</TableHead>
+                <TableHead className="text-muted-foreground">Total Disputes</TableHead>
+                <TableHead className="text-muted-foreground">Approved Disputes</TableHead>
+                <TableHead className="text-muted-foreground">Last Activity</TableHead>
                 <TableHead className="text-muted-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentUsers.map((user, index) => (
+              {users.map((user, index) => (
                 <TableRow key={index} className="border-border">
-                  <TableCell className="font-mono text-sm text-foreground">{user.uuid}</TableCell>
-                  <TableCell className="text-foreground">{user.totalSuspiciousDisputes}</TableCell>
-                  <TableCell className="text-foreground">{user.disputesApproved}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.lastDisputeDate}</TableCell>
+                  <TableCell className="font-mono text-sm text-foreground">{user.id}</TableCell>
+                  <TableCell className="text-foreground">{user.full_name}</TableCell>
+                  <TableCell className="text-foreground">{user.total_disputes}</TableCell>
+                  <TableCell className="text-foreground">{user.approved_disputes}</TableCell>
+                  <TableCell className="text-muted-foreground">{user.last_activity ? new Date(user.last_activity).toLocaleDateString() : 'Never'}</TableCell>
                   <TableCell>
                     <Button
                       variant="outline"
@@ -134,14 +198,14 @@ export default function UserList() {
             </Button>
             
             <span className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              Page {currentPage} of {pagination.pages}
             </span>
             
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.pages))}
+              disabled={currentPage === pagination.pages}
               className="flex items-center gap-2"
             >
               Next
@@ -164,63 +228,81 @@ export default function UserList() {
           {selectedUser && (
             <div className="space-y-6">
               {/* User Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-card p-4 rounded-lg border">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">User ID</p>
-                  <p className="font-mono text-sm text-foreground">{selectedUser.uuid}</p>
+                  <p className="font-mono text-sm">{selectedUser.user.id}</p>
                 </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Suspicious Disputes</p>
-                  <p className="text-lg font-semibold text-foreground">{selectedUser.totalSuspiciousDisputes}</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Full Name</p>
+                  <p className="text-lg font-semibold">{selectedUser.user.full_name}</p>
                 </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Approved Disputes</p>
-                  <p className="text-lg font-semibold text-foreground">{selectedUser.disputesApproved}</p>
-                </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Approval Rate</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    {((selectedUser.disputesApproved / selectedUser.totalSuspiciousDisputes) * 100).toFixed(1)}%
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Total Claims</p>
+                  <p className="text-lg font-semibold text-blue-600">
+                    {selectedUser.user.total_claims}
                   </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Approved Claims</p>
+                  <p className="text-lg font-semibold text-green-600">
+                    {selectedUser.user.approved_claims}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Risk Score</p>
+                  <p className="text-lg font-semibold text-red-600">{selectedUser.user.risk_score}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Flagged Status</p>
+                  <p className="text-lg font-semibold">{selectedUser.user.is_flagged ? 'Yes' : 'No'}</p>
                 </div>
               </div>
 
               {/* Dispute History */}
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Dispute History</h3>
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-muted-foreground">Date</TableHead>
-                        <TableHead className="text-muted-foreground">Company</TableHead>
-                        <TableHead className="text-muted-foreground">Category</TableHead>
-                        <TableHead className="text-muted-foreground">Item Link</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {currentDisputes.map((dispute, index) => (
-                        <TableRow key={index} className="border-border">
-                          <TableCell className="text-foreground">{dispute.date}</TableCell>
-                          <TableCell className="text-foreground">{dispute.company}</TableCell>
-                          <TableCell className="text-muted-foreground">{dispute.category}</TableCell>
-                          <TableCell>
-                            <a 
-                              href={dispute.itemLink} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline text-sm"
-                            >
-                              View Item
-                            </a>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Claims History</h3>
+                {selectedUser.claims.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    No claims history available for this user.
+                  </p>
+                )}
+                {currentDisputes.map((claim, index) => (
+                  <div key={index} className="border border-border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold text-foreground">{new Date(claim.created_at).toLocaleDateString()}</p>
+                        <p className="text-sm text-muted-foreground">{claim.store_name}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          claim.status === 'APPROVED' 
+                            ? 'bg-green-100 text-green-800' 
+                            : claim.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {claim.status}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">Total Value: ${claim.total_value.toFixed(2)}</p>
+                    <div className="text-sm text-foreground mb-2">
+                      <p className="font-medium">Items:</p>
+                      <ul className="list-disc list-inside ml-2">
+                        {claim.items.map((item, itemIndex) => (
+                          <li key={itemIndex}>
+                            {item.item_name} - ${item.price} x {item.quantity} ({item.category})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
 
-                  {/* Dispute Pagination */}
-                  <div className="flex items-center justify-between p-4 border-t">
+                {/* Pagination for disputes */}
+                {disputeTotalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -247,7 +329,7 @@ export default function UserList() {
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           )}

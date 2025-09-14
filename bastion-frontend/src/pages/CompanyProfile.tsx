@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -25,7 +25,7 @@ import {
   Cell,
 } from 'recharts';
 import { Tooltip as ReTooltip, Area, Sector } from 'recharts';
-import { ShieldAlert, CheckCircle, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ShieldAlert, CheckCircle, TrendingUp, ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp } from 'lucide-react';
 import CountUp from '@/components/ui/count-up';
 import { SkeletonLoader } from '@/components/ui/skeleton-loader';
 import {
@@ -36,116 +36,33 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { apiClient } from '@/lib/api';
 
-// Sample data with real dates
-const timeRangeData = {
-  '7d': {
-    suspiciousDisputes: [
-      { date: 'Sep 6', value: 145 },
-      { date: 'Sep 7', value: 162 },
-      { date: 'Sep 8', value: 178 },
-      { date: 'Sep 9', value: 156 },
-      { date: 'Sep 10', value: 187 },
-      { date: 'Sep 11', value: 203 },
-      { date: 'Sep 12', value: 198 },
-    ],
-    approvedDisputes: [
-      { date: 'Sep 6', value: 118 },
-      { date: 'Sep 7', value: 135 },
-      { date: 'Sep 8', value: 142 },
-      { date: 'Sep 9', value: 125 },
-      { date: 'Sep 10', value: 149 },
-      { date: 'Sep 11', value: 162 },
-      { date: 'Sep 12', value: 158 },
-    ],
-  },
-  '1m': {
-    suspiciousDisputes: [
-      { date: 'Aug 16', value: 1250 },
-      { date: 'Aug 23', value: 1380 },
-      { date: 'Aug 30', value: 1190 },
-      { date: 'Sep 6', value: 1420 },
-    ],
-    approvedDisputes: [
-      { date: 'Aug 16', value: 1000 },
-      { date: 'Aug 23', value: 1104 },
-      { date: 'Aug 30', value: 952 },
-      { date: 'Sep 6', value: 1136 },
-    ],
-  },
-  '3m': {
-    suspiciousDisputes: [
-      { date: 'Jun 13', value: 5240 },
-      { date: 'Jul 13', value: 5680 },
-      { date: 'Aug 13', value: 5120 },
-    ],
-    approvedDisputes: [
-      { date: 'Jun 13', value: 4192 },
-      { date: 'Jul 13', value: 4544 },
-      { date: 'Aug 13', value: 4096 },
-    ],
-  },
-  '1y': {
-    suspiciousDisputes: [
-      { date: 'Q4 2023', value: 18420 },
-      { date: 'Q1 2024', value: 19850 },
-      { date: 'Q2 2024', value: 21200 },
-      { date: 'Q3 2024', value: 20100 },
-    ],
-    approvedDisputes: [
-      { date: 'Q4 2023', value: 14736 },
-      { date: 'Q1 2024', value: 15880 },
-      { date: 'Q2 2024', value: 16960 },
-      { date: 'Q3 2024', value: 16080 },
-    ],
-  },
-};
+// Interface for API data
+interface DashboardData {
+  suspiciousDisputes: Array<{ date: string; value: number }>;
+  approvedDisputes: Array<{ date: string; value: number }>;
+}
 
-const categoryData = [
-  { name: 'Electronics', value: 35, color: 'hsl(var(--chart-1))' },
-  { name: 'Clothing', value: 25, color: 'hsl(var(--chart-2))' },
-  { name: 'Home & Garden', value: 20, color: 'hsl(var(--chart-3))' },
-  { name: 'Sports', value: 12, color: 'hsl(var(--chart-4))' },
-  { name: 'Books', value: 8, color: 'hsl(var(--chart-5))' },
-];
+interface CategoryData {
+  name: string;
+  value: number;
+  color: string;
+}
 
-const topDisputedItems = [
-  {
-    item: 'iPhone 15 Pro Max',
-    category: 'Electronics',
-    disputes: 43,
-    lastDispute: '2024-01-15',
-    productLink: 'https://example.com/products/iphone-15-pro-max',
-  },
-  {
-    item: 'Nike Air Force 1',
-    category: 'Clothing',
-    disputes: 38,
-    lastDispute: '2024-01-14',
-    productLink: 'https://example.com/products/nike-air-force-1',
-  },
-  {
-    item: 'Samsung 65" QLED TV',
-    category: 'Electronics',
-    disputes: 35,
-    lastDispute: '2024-01-13',
-    productLink: 'https://example.com/products/samsung-65-qled-tv',
-  },
-  {
-    item: 'Dyson V15 Vacuum',
-    category: 'Home & Garden',
-    disputes: 29,
-    lastDispute: '2024-01-12',
-    productLink: 'https://example.com/products/dyson-v15-vacuum',
-  },
-  {
-    item: 'MacBook Pro 16"',
-    category: 'Electronics',
-    disputes: 27,
-    lastDispute: '2024-01-11',
-    productLink: 'https://example.com/products/macbook-pro-16',
-  },
-];
+interface TopDisputedItem {
+  item: string;
+  category: string;
+  disputes: number;
+  lastDispute: string;
+  productLink: string;
+}
+
+interface SummaryStats {
+  totalSuspiciousDisputes: number;
+  totalApprovedDisputes: number;
+  approvalRate: number;
+}
 
 const renderCustomLabel = ({
   cx,
@@ -184,32 +101,60 @@ export default function CompanyProfile() {
   const [selectedMetric, setSelectedMetric] = useState<
     'suspiciousDisputes' | 'approvedDisputes' | 'percentage'
   >('suspiciousDisputes');
+  
+  // State for API data
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
+    suspiciousDisputes: [],
+    approvedDisputes: []
+  });
+  const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
+  const [topDisputedItems, setTopDisputedItems] = useState<TopDisputedItem[]>([]);
+  const [summaryStats, setSummaryStats] = useState<SummaryStats>({
+    totalSuspiciousDisputes: 0,
+    totalApprovedDisputes: 0,
+    approvalRate: 0
+  });
+  const [error, setError] = useState<string | null>(null);
   const [hoveredCategoryIndex, setHoveredCategoryIndex] = useState<number | null>(null);
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
+  // Fetch data from API
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(t);
-  }, []);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const currentData = timeRangeData[timeRange];
-  const totalSuspiciousDisputes = currentData.suspiciousDisputes.reduce(
-    (sum, item) => sum + item.value,
-    0
-  );
-  const totalApprovedDisputes = currentData.approvedDisputes.reduce(
-    (sum, item) => sum + item.value,
-    0
-  );
-  const approvalRate = ((totalApprovedDisputes / totalSuspiciousDisputes) * 100).toFixed(1);
+        const [metricsData, categoryResponse, topItemsData, statsData] = await Promise.all([
+          apiClient.getDashboardMetrics(timeRange),
+          apiClient.getCategoryDistribution(),
+          apiClient.getTopDisputedItems(5),
+          apiClient.getSummaryStats(timeRange)
+        ]);
+
+        setDashboardData(metricsData as DashboardData);
+        setCategoryData(categoryResponse as CategoryData[]);
+        setTopDisputedItems(topItemsData as TopDisputedItem[]);
+        setSummaryStats(statsData as SummaryStats);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [timeRange]);
 
   // Derived helpers for secondary metrics
   const average = (values: number[]) => Math.round(values.reduce((a, b) => a + b, 0) / Math.max(values.length, 1));
   const change = (values: number[]) => (values.length > 1 ? values[values.length - 1] - values[0] : 0);
 
-  const suspiciousValues = currentData.suspiciousDisputes.map(d => d.value);
-  const approvedValues = currentData.approvedDisputes.map(d => d.value);
-  const percentSeries = currentData.suspiciousDisputes.map((s, i) => {
-    const val = ((currentData.approvedDisputes[i]?.value || 0) / s.value) * 100;
+  const suspiciousValues = dashboardData.suspiciousDisputes.map(d => d.value);
+  const approvedValues = dashboardData.approvedDisputes.map(d => d.value);
+  const percentSeries = dashboardData.suspiciousDisputes.map((s, i) => {
+    const val = ((dashboardData.approvedDisputes[i]?.value || 0) / s.value) * 100;
     return parseFloat(val.toFixed(1));
   });
 
@@ -221,12 +166,12 @@ export default function CompanyProfile() {
   const chgPercent = Math.round(change(percentSeries));
 
   const getChartData = () => {
-    if (selectedMetric === 'suspiciousDisputes') return currentData.suspiciousDisputes;
-    if (selectedMetric === 'approvedDisputes') return currentData.approvedDisputes;
+    if (selectedMetric === 'suspiciousDisputes') return dashboardData.suspiciousDisputes;
+    if (selectedMetric === 'approvedDisputes') return dashboardData.approvedDisputes;
 
-    return currentData.suspiciousDisputes.map((suspicious, index) => ({
+    return dashboardData.suspiciousDisputes.map((suspicious, index) => ({
       date: suspicious.date,
-      value: ((currentData.approvedDisputes[index]?.value || 0) / suspicious.value) * 100,
+      value: ((dashboardData.approvedDisputes[index]?.value || 0) / suspicious.value) * 100,
     }));
   };
 
@@ -249,6 +194,14 @@ export default function CompanyProfile() {
         <div className="bg-muted/60 border border-slate-800 rounded-lg p-6">
           <SkeletonLoader rows={5} />
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-red-500">{error}</div>
       </div>
     );
   }
@@ -289,7 +242,7 @@ export default function CompanyProfile() {
               Suspicious Disputes
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              <CountUp to={totalSuspiciousDisputes} separator="," duration={0.6} />
+              <CountUp to={summaryStats.totalSuspiciousDisputes} separator="," duration={0.6} />
             </CardDescription>
             <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
               <span>Avg: {avgSuspicious.toLocaleString()}</span>
@@ -317,7 +270,7 @@ export default function CompanyProfile() {
               Approved Disputes
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              <CountUp to={totalApprovedDisputes} separator="," duration={0.6} />
+              <CountUp to={summaryStats.totalApprovedDisputes} separator="," duration={0.6} />
             </CardDescription>
             <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
               <span>Avg: {avgApproved.toLocaleString()}</span>
@@ -345,7 +298,7 @@ export default function CompanyProfile() {
               Approval Rate
             </CardTitle>
             <CardDescription className="text-2xl font-bold text-foreground">
-              <CountUp to={parseFloat(approvalRate)} separator="," duration={0.6} />%
+              <CountUp to={summaryStats.approvalRate} separator="," duration={0.6} />%
             </CardDescription>
             <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
               <span>Avg: {avgPercent}%</span>
@@ -464,7 +417,8 @@ export default function CompanyProfile() {
                 </ResponsiveContainer>
               </div>
               <div className="mt-4 space-y-2">
-                {categoryData.map((entry, index) => (
+                {/* Show first 4 categories by default */}
+                {(showAllCategories ? categoryData : categoryData.slice(0, 4)).map((entry, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between py-1 cursor-pointer rounded hover:bg-slate-800/40 transition-colors"
@@ -485,6 +439,26 @@ export default function CompanyProfile() {
                     </span>
                   </div>
                 ))}
+                
+                {/* Show more/less button if there are more than 4 categories */}
+                {categoryData.length > 4 && (
+                  <button
+                    onClick={() => setShowAllCategories(!showAllCategories)}
+                    className="flex items-center gap-2 w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-slate-800/40"
+                  >
+                    {showAllCategories ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        Show Less ({categoryData.length - 4} hidden)
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        Show More ({categoryData.length - 4} more)
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </CardContent>

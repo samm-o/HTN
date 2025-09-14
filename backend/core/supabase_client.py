@@ -24,10 +24,6 @@ class SupabaseClient:
         supabase_url = os.getenv("SUPABASE_URL")
         supabase_key = os.getenv("SUPABASE_ANON_KEY") or os.getenv("SUPABASE_PUBLIC_API_KEY") or os.getenv("SUPABASE_SECRET_API_KEY")
         
-        # Debug logging
-        print(f"DEBUG: SUPABASE_URL = '{supabase_url}'")
-        print(f"DEBUG: SUPABASE_KEY = '{supabase_key}'")
-        
         if not supabase_url or not supabase_key:
             raise ValueError(
                 "SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment variables"
@@ -35,7 +31,6 @@ class SupabaseClient:
         
         # Clean the URL - remove quotes and trailing slashes
         supabase_url = supabase_url.strip().strip('"').strip("'").rstrip('/')
-        print(f"DEBUG: Cleaned URL = '{supabase_url}'")
         
         self._client = create_client(supabase_url, supabase_key)
     
@@ -55,4 +50,8 @@ supabase_client = SupabaseClient()
 
 def get_supabase() -> Client:
     """Dependency function to get Supabase client for FastAPI"""
+    return supabase_client.get_client()
+
+def get_supabase_client() -> Client:
+    """Alternative function name for getting Supabase client"""
     return supabase_client.get_client()
