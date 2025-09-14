@@ -3,7 +3,7 @@ import {
   Building2,
   Users,
   BarChart3,
-  Layers3,
+  Webhook,
   FileText,
   Key,
   ChevronDown,
@@ -385,7 +385,7 @@ export function DashboardSidebar() {
                       : "text-sidebar-foreground hover:bg-slate-800/60"
                   }`}
                 >
-                  <Layers3
+                  <Webhook
                     className={`${collapsed ? "h-5 w-5" : "h-5 w-5 mr-3"}`}
                   />
                   {!collapsed && <span>Webhooks</span>}
