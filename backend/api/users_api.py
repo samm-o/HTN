@@ -3,6 +3,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import uuid
 from core.supabase_client import get_supabase_client
+from services.risk_score_cache import risk_score_cache
 
 router = APIRouter(prefix="/api/v1/admin/users", tags=["admin-users"])
 
@@ -36,31 +37,46 @@ async def get_users_list(
         count_response = supabase.table("users").select("id", count="exact").execute()
         total_users = count_response.count if count_response.count else 0
         
-        # For each user, get their claims statistics
+        # For each user, get their cached risk scores and basic statistics
         users_with_stats = []
+        
         for user in users_response.data:
             user_id = user["id"]
             
-            # Get claims count and statistics for this user
-            claims_response = supabase.table("claims").select("id, status, created_at").eq("user_id", user_id).execute()
+            # Get cached risk score data
+            cached_data = await risk_score_cache.get_user_risk_score(user_id)
             
-            claims = claims_response.data if claims_response.data else []
-            total_disputes = len(claims)
-            pending_disputes = len([c for c in claims if c["status"] == "PENDING"])
-            approved_disputes = len([c for c in claims if c["status"] == "APPROVED"])
-            denied_disputes = len([c for c in claims if c["status"] == "DENIED"])
-            
-            # Calculate last activity
-            last_activity = None
-            if claims:
-                last_activity = max(claim["created_at"] for claim in claims)
+            if cached_data:
+                # Use cached data
+                risk_score = cached_data.get("risk_score")
+                is_flagged = cached_data.get("is_flagged", False)
+                total_disputes = cached_data.get("total_claims", 0)
+                pending_disputes = cached_data.get("pending_claims", 0)
+                approved_disputes = cached_data.get("approved_claims", 0)
+                denied_disputes = cached_data.get("denied_claims", 0)
+                
+                # Get last activity from claims
+                claims_response = supabase.table("claims").select("created_at").eq("user_id", user_id).order("created_at", desc=True).limit(1).execute()
+                last_activity = claims_response.data[0]["created_at"] if claims_response.data else None
+            else:
+                # Fallback to database values if cache miss
+                claims_response = supabase.table("claims").select("id, status, created_at").eq("user_id", user_id).execute()
+                claims = claims_response.data if claims_response.data else []
+                
+                risk_score = user["risk_score"] if claims else None  # N/A if no claims
+                is_flagged = user["is_flagged"] if claims else False
+                total_disputes = len(claims)
+                pending_disputes = len([c for c in claims if c["status"] == "PENDING"])
+                approved_disputes = len([c for c in claims if c["status"] == "APPROVED"])
+                denied_disputes = len([c for c in claims if c["status"] == "DENIED"])
+                last_activity = max(claim["created_at"] for claim in claims) if claims else None
             
             users_with_stats.append({
                 "id": user_id,
                 "full_name": user["full_name"],
                 "created_at": user["created_at"],
-                "risk_score": user["risk_score"],
-                "is_flagged": user["is_flagged"],
+                "risk_score": risk_score,  # Can be None for N/A
+                "is_flagged": is_flagged,
                 "total_disputes": total_disputes,
                 "pending_disputes": pending_disputes,
                 "approved_disputes": approved_disputes,
@@ -128,13 +144,25 @@ async def get_user_details(user_id: str):
         
         total_value = sum(claim["total_value"] for claim in processed_claims)
         
+        # Get cached risk score data
+        cached_data = await risk_score_cache.get_user_risk_score(user_id)
+        
+        if cached_data:
+            # Use cached data
+            calculated_risk_score = cached_data.get("risk_score")
+            calculated_is_flagged = cached_data.get("is_flagged", False)
+        else:
+            # Fallback to database values if cache miss
+            calculated_risk_score = user["risk_score"] if processed_claims else None  # N/A if no claims
+            calculated_is_flagged = user["is_flagged"] if processed_claims else False
+        
         return {
             "user": {
                 "id": user["id"],
                 "full_name": user["full_name"],
                 "created_at": user["created_at"],
-                "risk_score": user["risk_score"],
-                "is_flagged": user["is_flagged"],
+                "risk_score": calculated_risk_score,  # Can be None for N/A
+                "is_flagged": calculated_is_flagged,
                 "total_claims": total_claims,
                 "pending_claims": pending_claims,
                 "approved_claims": approved_claims,
