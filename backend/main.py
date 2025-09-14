@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from api.customer import router as customer_router
 from api.user_api import router as user_router
 from api.store_api import router as store_router
@@ -25,13 +26,29 @@ async def startup_event():
     asyncio.create_task(risk_score_cache.initialize_cache())
 
 # Add CORS middleware for frontend connection
+_origins = [
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "http://localhost:8081",
+    "http://localhost:8082",
+    storefront_url,
+    bastion_frontend_url,
+]
+# Filter out any Nones or empty strings
+allow_origin_list = [o for o in _origins if o]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8080", "http://localhost:8081", "http://localhost:8082", storefront_url, bastion_frontend_url],
+    allow_origins=allow_origin_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global OPTIONS handler to ensure preflight gets a 204
+@app.options("/{path:path}")
+async def cors_preflight_handler(path: str = ""):
+    return Response(status_code=204)
 
 # Include routers
 app.include_router(customer_router)
