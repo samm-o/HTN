@@ -64,13 +64,24 @@ export function DashboardSidebar() {
     <Sidebar className={collapsed ? 'w-16' : 'w-64'} collapsible="icon">
       <SidebarContent>
         <div className="h-16 border-b border-sidebar-border flex items-center justify-center">
-          <h2
-            className={`font-bold text-sidebar-foreground ${
-              collapsed ? 'text-xl' : 'text-xl px-6 w-full'
-            }`}
-          >
-            {collapsed ? 'B' : 'Bastion'}
-          </h2>
+          {collapsed ? (
+            <img 
+              src="/LogoBas.svg" 
+              alt="Bastion Logo" 
+              className="h-8 w-8 text-sidebar-foreground"
+            />
+          ) : (
+            <div className="flex items-center px-6 w-full">
+              <img 
+                src="/LogoBas.svg" 
+                alt="Bastion Logo" 
+                className="h-8 w-8 mr-2 text-sidebar-foreground"
+              />
+              <h2 className="font-bold text-xl text-sidebar-foreground">
+                Bastion
+              </h2>
+            </div>
+          )}
         </div>
 
         <SidebarGroup>
