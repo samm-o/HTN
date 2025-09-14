@@ -39,24 +39,28 @@ async def add_cors_header(request, call_next):
 
 # Add CORS middleware for frontend connection
 origins = [
-    "https://bastion-frontend.vercel.app",
-    "https://storefront-frontend.vercel.app", 
+    "https://bastion-frontend-wine.vercel.app",
+    "https://storefront-frontend-wine.vercel.app",
+    "https://bastion-70xw3el8y-samuil-georgievs-projects.vercel.app",
+    "https://storefront-70xw3el8y-samuil-georgievs-projects.vercel.app",
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:5173",
-    "http://localhost:5174"
+    "http://localhost:5174",
+    "*"
 ]
 
 # Allow all origins in development
-if os.getenv("VERCEL_ENV") != "production":
+if os.getenv("RAILWAY_ENVIRONMENT") != "production":
     origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Include routers
@@ -73,6 +77,12 @@ app.include_router(users_router)
 def read_root():
     return {"status": "ok"}
 
+@app.options("/{full_path:path}")
+def options_handler(full_path: str):
+    return {"message": "OK"}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
+    port = int(os.getenv("PORT", 8000))
+    print(f"🚀 Starting server on 0.0.0.0:{port}")
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False, log_level="info")
