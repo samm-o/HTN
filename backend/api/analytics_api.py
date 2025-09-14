@@ -206,23 +206,22 @@ async def get_summary_stats(time_range: str = Query("7d", regex="^(7d|1m|3m|1y)$
     try:
         # Get claims for the period
         claims_response = supabase.table("claims").select(
-            "id, status, users!inner(risk_score, is_flagged)"
+            "id, status"
         ).gte("created_at", start_date.isoformat()).execute()
         
         claims = claims_response.data if claims_response.data else []
         
-        total_suspicious = 0
-        for claim in claims:
-            user_data = claim.get('users', {})
-            is_suspicious = user_data.get('risk_score', 0) > 70 or user_data.get('is_flagged', False)
-            if is_suspicious:
-                total_suspicious += 1
+        # Total disputes = ALL claims (suspicious disputes is actually total disputes)
+        total_disputes = len(claims)
         
+        # Approved disputes = only APPROVED claims
         total_approved = sum(1 for claim in claims if claim.get('status') == 'APPROVED')
-        approval_rate = (total_approved / total_suspicious * 100) if total_suspicious > 0 else 0
+        
+        # Approval rate = (approved / total) * 100% (will always be <= 100%)
+        approval_rate = (total_approved / total_disputes * 100) if total_disputes > 0 else 0
         
         return {
-            "totalSuspiciousDisputes": total_suspicious,
+            "totalSuspiciousDisputes": total_disputes,  # This is actually total disputes
             "totalApprovedDisputes": total_approved,
             "approvalRate": round(approval_rate, 1)
         }
