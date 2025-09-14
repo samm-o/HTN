@@ -1,0 +1,28 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "has": [
+        { "type": "header", "key": "Origin", "value": "https://bastion-tawny.vercel.app" }
+      ],
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "https://bastion-tawny.vercel.app" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,PATCH,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" },
+        { "key": "Access-Control-Allow-Credentials", "value": "true" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        { "type": "header", "key": "Origin", "value": "https://storefront-example-eta.vercel.app" }
+      ],
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "https://storefront-example-eta.vercel.app" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,PATCH,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" },
+        { "key": "Access-Control-Allow-Credentials", "value": "true" }
+      ]
+    }
+  ]
+}
