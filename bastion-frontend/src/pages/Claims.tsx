@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -48,13 +48,33 @@ const ITEMS_PER_PAGE = 10;
 export default function Claims() {
   const [claims] = useState(generateClaims());
   const [page, setPage] = useState(1);
+  const [preloadedPages, setPreloadedPages] = useState<Map<number, any[]>>(new Map());
 
   const totalPages = Math.ceil(claims.length / ITEMS_PER_PAGE);
+  
   const pageSlice = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
     return claims.slice(start, end);
   }, [claims, page]);
+
+  // Preload next page data
+  useEffect(() => {
+    const preloadNextPage = () => {
+      const nextPage = page + 1;
+      if (nextPage <= totalPages && !preloadedPages.has(nextPage)) {
+        const start = (nextPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const nextPageData = claims.slice(start, end);
+        
+        setPreloadedPages(prev => new Map(prev).set(nextPage, nextPageData));
+      }
+    };
+
+    // Preload after a short delay to simulate API call preparation
+    const timer = setTimeout(preloadNextPage, 100);
+    return () => clearTimeout(timer);
+  }, [page, totalPages, claims, preloadedPages]);
 
   return (
     <div className="space-y-6">
@@ -128,7 +148,10 @@ export default function Claims() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+              onClick={() => {
+                const nextPage = Math.min(page + 1, totalPages);
+                setPage(nextPage);
+              }}
               disabled={page === totalPages}
               className="flex items-center gap-2"
             >

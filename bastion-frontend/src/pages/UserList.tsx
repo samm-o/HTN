@@ -72,6 +72,7 @@ export default function UserList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [preloadedPages, setPreloadedPages] = useState<Map<number, User[]>>(new Map());
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: ITEMS_PER_PAGE,
@@ -100,6 +101,25 @@ export default function UserList() {
     fetchUsers();
   }, [currentPage]);
 
+  // Preload next page data
+  useEffect(() => {
+    const preloadNextPage = async () => {
+      const nextPage = currentPage + 1;
+      if (nextPage <= pagination.pages && !preloadedPages.has(nextPage)) {
+        try {
+          const response = await apiClient.getUsersList(nextPage, ITEMS_PER_PAGE) as any;
+          setPreloadedPages(prev => new Map(prev).set(nextPage, response.users as User[]));
+        } catch (err) {
+          console.error('Failed to preload next page:', err);
+        }
+      }
+    };
+
+    // Preload after a short delay
+    const timer = setTimeout(preloadNextPage, 500);
+    return () => clearTimeout(timer);
+  }, [currentPage, pagination.pages, preloadedPages]);
+
   const handleViewDetails = async (user: User) => {
     try {
       const userDetails = await apiClient.getUserDetails(user.id);
@@ -119,8 +139,47 @@ export default function UserList() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Loading users...</div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-9 w-48 bg-slate-800 rounded animate-pulse" />
+          <div className="h-5 w-32 bg-slate-800 rounded animate-pulse" />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <div className="h-6 w-40 bg-slate-800 rounded animate-pulse" />
+            <div className="h-4 w-64 bg-slate-800 rounded animate-pulse" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Table Header Skeleton */}
+              <div className="grid grid-cols-5 gap-4 pb-3 border-b border-slate-700">
+                <div className="h-4 w-20 bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-24 bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-20 bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-28 bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-16 bg-slate-800 rounded animate-pulse" />
+              </div>
+              
+              {/* Table Rows Skeleton */}
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={index} className="grid grid-cols-5 gap-4 py-3 border-b border-slate-800/50">
+                  <div className="h-4 w-16 bg-slate-800/60 rounded animate-pulse" />
+                  <div className="h-4 w-20 bg-slate-800/60 rounded animate-pulse" />
+                  <div className="h-4 w-12 bg-slate-800/60 rounded animate-pulse" />
+                  <div className="h-4 w-24 bg-slate-800/60 rounded animate-pulse" />
+                  <div className="h-8 w-20 bg-slate-700 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+            
+            {/* Pagination Skeleton */}
+            <div className="flex items-center justify-between pt-6">
+              <div className="h-4 w-32 bg-slate-800 rounded animate-pulse" />
+              <div className="h-9 w-20 bg-slate-800 rounded animate-pulse" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -157,13 +216,6 @@ export default function UserList() {
                 <TableHead className="text-muted-foreground">Suspicious Disputes</TableHead>
                 <TableHead className="text-muted-foreground">Disputes Approved</TableHead>
                 <TableHead className="text-muted-foreground">Last Dispute Date</TableHead>
-              </TableRow>
-              <TableRow className="border-border">
-                <TableHead className="text-muted-foreground">User ID</TableHead>
-                <TableHead className="text-muted-foreground">Full Name</TableHead>
-                <TableHead className="text-muted-foreground">Total Disputes</TableHead>
-                <TableHead className="text-muted-foreground">Approved Disputes</TableHead>
-                <TableHead className="text-muted-foreground">Last Activity</TableHead>
                 <TableHead className="text-muted-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -171,7 +223,6 @@ export default function UserList() {
               {users.map((user, index) => (
                 <TableRow key={index} className="border-border">
                   <TableCell className="font-mono text-sm text-foreground">{user.id}</TableCell>
-                  <TableCell className="text-foreground">{user.full_name}</TableCell>
                   <TableCell className="text-foreground">{user.total_disputes}</TableCell>
                   <TableCell className="text-foreground">{user.approved_disputes}</TableCell>
                   <TableCell className="text-muted-foreground">{user.last_activity ? new Date(user.last_activity).toLocaleDateString() : 'Never'}</TableCell>
@@ -210,7 +261,14 @@ export default function UserList() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.pages))}
+              onClick={() => {
+                const nextPage = Math.min(currentPage + 1, pagination.pages);
+                setCurrentPage(nextPage);
+                // If we have preloaded data, use it immediately
+                if (preloadedPages.has(nextPage)) {
+                  setUsers(preloadedPages.get(nextPage) || []);
+                }
+              }}
               disabled={currentPage === pagination.pages}
               className="flex items-center gap-2"
             >
@@ -222,7 +280,7 @@ export default function UserList() {
       </Card>
       {/* Customer Profile Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto scrollbar-none">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-foreground">Customer Profile</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -252,7 +310,9 @@ export default function UserList() {
                 </div>
                 <div className="bg-card p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Risk Score</p>
-                  <p className="text-lg font-semibold text-foreground">{selectedUser.user.risk_score}</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {selectedUser.user.risk_score !== null ? selectedUser.user.risk_score : 'N/A'}
+                  </p>
                 </div>
                 <div className="bg-card p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Flagged</p>

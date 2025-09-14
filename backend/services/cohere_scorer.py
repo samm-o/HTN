@@ -3,11 +3,16 @@ import cohere
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from dotenv import load_dotenv
+import uuid
+from collections import Counter
 
 # Load environment variables
 load_dotenv()
 
-import uuid
+# Import backend components
+from crud.crud_customer import CustomerCRUD
+from crud.crud_claim import ClaimCRUD
+from core.supabase_client import get_supabase
 
 class CohereEnhancedFraudDetector:
     """
@@ -17,6 +22,9 @@ class CohereEnhancedFraudDetector:
     
     def __init__(self, api_key: Optional[str] = None):
         self.client = cohere.ClientV2(api_key=api_key)
+        self.customer_crud = CustomerCRUD()
+        self.claim_crud = ClaimCRUD()
+        self.supabase = get_supabase()
         
         # Fraud pattern templates for reranking
         self.fraud_patterns = [
@@ -35,21 +43,27 @@ class CohereEnhancedFraudDetector:
             "Multiple high-quantity items returned simultaneously"
         ]
     
-    def calculate_enhanced_fraud_score(self, 
-                                     user_data: Dict[str, Any],
-                                     claim_data: List[Dict[str, Any]], 
-                                     historical_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def calculate_enhanced_fraud_score(self, 
+                                     user_id: uuid.UUID,
+                                     claim_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        Calculate fraud likelihood score /100 using Cohere rerank API
+        Calculate fraud likelihood score /100 using Cohere rerank API with real backend data
         
         Args:
-            user_data: Customer profile data (risk_score, is_flagged, etc.)
+            user_id: UUID of the user to analyze
             claim_data: Current return claim items and details
-            historical_data: Previous claims and purchase history
             
         Returns:
             Dict with fraud_score, confidence, risk_factors, and recommendations
         """
+        
+        # Fetch real user data from database
+        user_data = await self._get_user_data_from_db(user_id)
+        if not user_data:
+            raise ValueError(f"User {user_id} not found in database")
+        
+        # Fetch historical claims data from database
+        historical_data = await self._get_historical_data_from_db(user_id)
         
         # Generate customer behavior description
         behavior_description = self._generate_behavior_description(
@@ -70,7 +84,9 @@ class CohereEnhancedFraudDetector:
             "confidence": self._calculate_confidence(fraud_indicators),
             "risk_factors": fraud_indicators,
             "recommendations": self._generate_recommendations(enhanced_score, fraud_indicators),
-            "behavior_analysis": behavior_description
+            "behavior_analysis": behavior_description,
+            "user_profile": user_data,
+            "historical_summary": self._summarize_historical_data(historical_data)
         }
     
     def _generate_behavior_description(self, 
@@ -340,7 +356,7 @@ class CohereEnhancedFraudDetector:
         """Check if date is within recent period"""
         try:
             claim_date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-            return (datetime.now(UTC) - claim_date).days <= days
+            return (datetime.now(timezone.utc) - claim_date).days <= days
         except:
             return False
     
@@ -377,76 +393,109 @@ class CohereEnhancedFraudDetector:
         
         return indicators
 
+    async def _get_user_data_from_db(self, user_id: uuid.UUID) -> Optional[Dict[str, Any]]:
+        """Fetch user data from database"""
+        try:
+            user = await self.customer_crud.get_user_by_kyc_id(user_id)
+            if not user:
+                return None
+            
+            return {
+                "risk_score": user.get("risk_score", 0),
+                "is_flagged": user.get("is_flagged", False),
+                "total_claims": user.get("total_claims", 0),
+                "created_at": user.get("created_at"),
+                "email": user.get("email"),
+                "name": user.get("name")
+            }
+        except Exception as e:
+            print(f"Error fetching user data: {e}")
+            return None
+    
+    async def _get_historical_data_from_db(self, user_id: uuid.UUID) -> List[Dict[str, Any]]:
+        """Fetch historical claims data from database"""
+        try:
+            claims = await self.claim_crud.get_claims_by_user(user_id, limit=100)
+            
+            # Convert to format expected by analysis functions
+            historical_data = []
+            for claim in claims:
+                historical_data.append({
+                    "created_at": claim.get("created_at"),
+                    "claim_data": claim.get("claim_data", []),
+                    "status": claim.get("status"),
+                    "store_id": claim.get("store_id"),
+                    "email_at_store": claim.get("email_at_store")
+                })
+            
+            return historical_data
+        except Exception as e:
+            print(f"Error fetching historical data: {e}")
+            return []
+    
+    def _summarize_historical_data(self, historical_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create a summary of historical data"""
+        if not historical_data:
+            return {
+                "total_claims": 0,
+                "total_value": 0,
+                "avg_claim_value": 0,
+                "most_common_categories": [],
+                "recent_claims_30d": 0
+            }
+        
+        total_value = 0
+        categories = []
+        recent_claims = 0
+        
+        from datetime import datetime, timedelta
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        
+        for claim in historical_data:
+            claim_value = 0
+            claim_items = claim.get("claim_data", [])
+            
+            for item in claim_items:
+                item_value = item.get("price", 0) * item.get("quantity", 1)
+                total_value += item_value
+                claim_value += item_value
+                categories.append(item.get("category", "unknown"))
+            
+            # Check if recent
+            try:
+                claim_date = datetime.fromisoformat(claim.get("created_at", "").replace('Z', '+00:00'))
+                if claim_date >= thirty_days_ago:
+                    recent_claims += 1
+            except:
+                pass
+        
+        # Count categories
+        category_counts = Counter(categories)
+        most_common_categories = [{"category": cat, "count": count} 
+                                for cat, count in category_counts.most_common(5)]
+        
+        return {
+            "total_claims": len(historical_data),
+            "total_value": round(total_value, 2),
+            "avg_claim_value": round(total_value / len(historical_data), 2) if historical_data else 0,
+            "most_common_categories": most_common_categories,
+            "recent_claims_30d": recent_claims
+        }
 
-def analyze_customer_fraud_risk(customer_id: str, 
-                              current_claim: List[Dict],
-                              user_data: Dict[str, Any],
-                              historical_data: List[Dict[str, Any]],
-                              api_key: Optional[str] = None) -> Dict[str, Any]:
+
+async def analyze_customer_fraud_risk(user_id: uuid.UUID, 
+                                    current_claim: List[Dict],
+                                    api_key: Optional[str] = None) -> Dict[str, Any]:
     """
-    Main function to analyze fraud risk for a customer's return claim
+    Main function to analyze fraud risk for a customer's return claim using real backend data
     
     Args:
-        customer_id: UUID of the customer
+        user_id: UUID of the customer
         current_claim: List of items being returned
-        user_data: Customer profile data (risk_score, is_flagged, etc.)
-        historical_data: Previous claims and purchase history
         api_key: Cohere API key (optional, can use env var)
     
     Returns:
-        Comprehensive fraud analysis results
+        Comprehensive fraud analysis results with real backend data
     """
     detector = CohereEnhancedFraudDetector(api_key)
-    return detector.calculate_enhanced_fraud_score(user_data, current_claim, historical_data)
-
-
-if __name__ == "__main__":
-    # Example usage - matches ItemData schema from backend/schemas/item_data.py
-    sample_claim = [
-        {
-            "item_name": "shirt",
-            "category": "clothing", 
-            "price": 12.99,
-            "quantity": 2,
-            "url": None
-        }
-    ]
-    
-    # Example user data
-    user_data = {
-        "risk_score": 45,
-        "is_flagged": False,
-        "total_claims": 3
-    }
-    
-    # Example historical data
-    historical_data = [
-        {
-            "created_at": "2024-08-15T10:00:00Z",
-            "claim_data": [{"price": 299.99, "quantity": 1, "category": "electronics"}]
-        },
-        {
-            "created_at": "2024-09-01T14:30:00Z", 
-            "claim_data": [{"price": 89.99, "quantity": 2, "category": "clothing"}]
-        }
-    ]
-    
-    result = analyze_customer_fraud_risk(
-        "test-customer-123", 
-        sample_claim, 
-        user_data,
-        historical_data,
-        os.getenv("COHERE_API_KEY")
-    )
-    
-    print("")
-    print("=" * 50)
-    print(f"Fraud Score: {result['fraud_score']}/100")
-    print(f"Confidence: {result['confidence']:.2%}")
-    print(f"\n Risk Factors:")
-    for factor in result['risk_factors']:
-        print(f"  • {factor['pattern']} (Relevance: {factor['relevance_score']:.2f})")
-    
-    print(f"\n💡 Recommendations:")
-    for rec in result['recommendations']:
-        print(f"  {rec}")
+    return await detector.calculate_enhanced_fraud_score(user_id, current_claim)

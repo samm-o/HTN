@@ -15,7 +15,7 @@ import {
 
 const navigationItems = [
   {
-    title: 'Home',
+    title: 'Company Profile',
     url: '/',
     icon: Building2,
   },
@@ -23,21 +23,6 @@ const navigationItems = [
     title: 'Customers',
     url: '/customers',
     icon: Users,
-  },
-  {
-    title: 'Claims',
-    url: '/claims',
-    icon: Layers3,
-  },
-  {
-    title: 'Products',
-    url: '/top-products',
-    icon: BarChart3,
-  },
-  {
-    title: 'Categories',
-    url: '/top-categories',
-    icon: Layers3,
   },
 ];
 
@@ -148,7 +133,7 @@ export function DashboardSidebar() {
                 {/* Submenu for API Docs anchors with slide animation */}
                 {!collapsed && (
                   <div
-                    className={`mt-1 ml-10 flex flex-col gap-1 overflow-hidden transition-all duration-300 ${
+                    className={`mt-1 ml-10 flex flex-col gap-2 overflow-hidden transition-all duration-300 ${
                       apiDocsOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
@@ -270,7 +255,7 @@ export function DashboardSidebar() {
                 </SidebarMenuButton>
                 {!collapsed && (
                   <div
-                    className={`mt-1 ml-10 flex flex-col gap-1 overflow-hidden transition-all duration-300 ${
+                    className={`mt-1 ml-10 flex flex-col gap-2 overflow-hidden transition-all duration-300 ${
                       webhookDocsOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
