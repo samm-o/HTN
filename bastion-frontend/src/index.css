@@ -1,4 +1,4 @@
-/* Global styles; font is loaded via index.html (Space Grotesk) */
+/* Global styles; font is loaded via index.html (Avenir) */
 
 @tailwind base;
 @tailwind components;
@@ -73,68 +73,6 @@
     --sidebar-ring: 217 12% 84%;
   }
 
-  .light {
-    /* Base light theme colors */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    /* Card surfaces */
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    /* Elevated surfaces */
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    /* Primary accent */
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    /* Secondary surfaces */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-
-    /* Muted elements */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    /* Accent surfaces */
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-
-    /* Error states */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    /* Borders and inputs */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    /* Chart colors - Professional blue/gray palette */
-    --chart-1: 217 60% 50%;
-    --chart-2: 217 45% 35%;
-    --chart-3: 217 30% 20%;
-    --chart-4: 217 70% 65%;
-    --chart-5: 217 25% 75%;
-
-    /* Dashboard specific colors */
-    --surface-elevated: 0 0% 98%;
-    --surface-subtle: 210 40% 98%;
-    --text-primary: 222.2 84% 4.9%;
-    --text-secondary: 215.4 16.3% 46.9%;
-    --text-muted: 215.4 16.3% 56.9%;
-
-    /* Sidebar theme */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 222.2 47.4% 11.2%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 222.2 84% 4.9%;
-  }
 }
 
 @layer base {

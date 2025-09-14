@@ -20,7 +20,6 @@ export default {
     extend: {
       fontFamily: {
         sans: [
-          "Space Grotesk",
           "Avenir",
           "Avenir Next",
           "-apple-system",
