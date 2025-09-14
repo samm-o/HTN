@@ -8,6 +8,9 @@ import { DashboardLayout } from "./components/dashboard/DashboardLayout";
 import CompanyProfile from "./pages/CompanyProfile";
 import TopProducts from "./pages/TopProducts";
 import TopCategories from "./pages/TopCategories";
+import Claims from "./pages/Claims";
+import ApiDocs from "./pages/ApiDocs";
+import ApiKeys from "./pages/ApiKeys";
 import UserList from "./pages/UserList";
 import NotFound from "./pages/NotFound";
 
@@ -23,9 +26,12 @@ const App = () => (
           <DashboardLayout>
             <Routes>
               <Route path="/" element={<CompanyProfile />} />
-              <Route path="/users" element={<UserList />} />
+              <Route path="/customers" element={<UserList />} />
+              <Route path="/claims" element={<Claims />} />
               <Route path="/top-products" element={<TopProducts />} />
               <Route path="/top-categories" element={<TopCategories />} />
+              <Route path="/api-docs" element={<ApiDocs />} />
+              <Route path="/api-keys" element={<ApiKeys />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

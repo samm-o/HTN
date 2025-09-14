@@ -136,22 +136,28 @@ export default function UserList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-foreground">User List</h2>
+        <h2 className="text-3xl font-bold text-foreground">Customers</h2>
         <div className="text-sm text-muted-foreground">
-          Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)} of {pagination.total} users
+          Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)} of {pagination.total} customers
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-foreground">User Database</CardTitle>
+          <CardTitle className="text-lg font-semibold text-foreground">Customer Database</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Complete list of users with dispute and approval information
+            Complete list of customers with dispute and approval information
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
+              <TableRow>
+                <TableHead className="text-muted-foreground">Customer ID</TableHead>
+                <TableHead className="text-muted-foreground">Suspicious Disputes</TableHead>
+                <TableHead className="text-muted-foreground">Disputes Approved</TableHead>
+                <TableHead className="text-muted-foreground">Last Dispute Date</TableHead>
+              </TableRow>
               <TableRow className="border-border">
                 <TableHead className="text-muted-foreground">User ID</TableHead>
                 <TableHead className="text-muted-foreground">Full Name</TableHead>
@@ -214,12 +220,11 @@ export default function UserList() {
           </div>
         </CardContent>
       </Card>
-
-      {/* User Profile Modal */}
+      {/* Customer Profile Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-foreground">User Profile</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-foreground">Customer Profile</DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Detailed information and dispute history
             </DialogDescription>
@@ -227,39 +232,43 @@ export default function UserList() {
 
           {selectedUser && (
             <div className="space-y-6">
-              {/* User Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">User ID</p>
-                  <p className="font-mono text-sm">{selectedUser.user.id}</p>
+              {/* Customer Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-card p-4 rounded-lg border">
+                  <p className="text-sm text-muted-foreground">Customer ID</p>
+                  <p className="font-mono text-sm text-foreground">{selectedUser.user.id}</p>
                 </div>
-                <div className="space-y-2">
+                <div className="bg-card p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Full Name</p>
-                  <p className="text-lg font-semibold">{selectedUser.user.full_name}</p>
+                  <p className="text-lg font-semibold text-foreground">{selectedUser.user.full_name}</p>
                 </div>
-                <div className="space-y-2">
+                <div className="bg-card p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Total Claims</p>
-                  <p className="text-lg font-semibold text-blue-600">
-                    {selectedUser.user.total_claims}
-                  </p>
+                  <p className="text-lg font-semibold text-blue-600">{selectedUser.user.total_claims}</p>
                 </div>
-                <div className="space-y-2">
+                <div className="bg-card p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Approved Claims</p>
-                  <p className="text-lg font-semibold text-green-600">
-                    {selectedUser.user.approved_claims}
-                  </p>
+                  <p className="text-lg font-semibold text-green-600">{selectedUser.user.approved_claims}</p>
                 </div>
-                <div className="space-y-2">
+                <div className="bg-card p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground">Risk Score</p>
-                  <p className="text-lg font-semibold text-red-600">{selectedUser.user.risk_score}</p>
+                  <p className="text-lg font-semibold text-foreground">{selectedUser.user.risk_score}</p>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Flagged Status</p>
-                  <p className="text-lg font-semibold">{selectedUser.user.is_flagged ? 'Yes' : 'No'}</p>
+                <div className="bg-card p-4 rounded-lg border">
+                  <p className="text-sm text-muted-foreground">Flagged</p>
+                  <p className="text-lg font-semibold text-foreground">{selectedUser.user.is_flagged ? 'Yes' : 'No'}</p>
+                </div>
+                <div className="bg-card p-4 rounded-lg border">
+                  <p className="text-sm text-muted-foreground">Total Claim Value</p>
+                  <p className="text-lg font-semibold text-foreground">${selectedUser.user.total_claim_value.toFixed(2)}</p>
+                </div>
+                <div className="bg-card p-4 rounded-lg border">
+                  <p className="text-sm text-muted-foreground">Created</p>
+                  <p className="text-lg font-semibold text-foreground">{new Date(selectedUser.user.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
 
-              {/* Dispute History */}
+              {/* Claims History */}
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-4">Claims History</h3>
                 {selectedUser.claims.length === 0 && (
@@ -276,8 +285,8 @@ export default function UserList() {
                       </div>
                       <div className="text-right">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          claim.status === 'APPROVED' 
-                            ? 'bg-green-100 text-green-800' 
+                          claim.status === 'APPROVED'
+                            ? 'bg-green-100 text-green-800'
                             : claim.status === 'PENDING'
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-red-100 text-red-800'

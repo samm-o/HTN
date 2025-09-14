@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, Users, BarChart3, Layers3 } from 'lucide-react';
+import { Building2, Users, BarChart3, Layers3, FileText, Key } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
@@ -15,14 +15,19 @@ import {
 
 const navigationItems = [
   {
-    title: 'Company Profile',
+    title: 'Home',
     url: '/',
     icon: Building2,
   },
   {
-    title: 'User List',
-    url: '/users',
+    title: 'Customers',
+    url: '/customers',
     icon: Users,
+  },
+  {
+    title: 'Claims',
+    url: '/claims',
+    icon: Layers3,
   },
   {
     title: 'Products',
@@ -85,6 +90,43 @@ export function DashboardSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Developer API Section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-sidebar-foreground/60 text-sm font-medium px-6 py-2">
+            Developer API
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate('/api-docs')}
+                  className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
+                    isActive('/api-docs')
+                      ? 'bg-slate-800 text-sidebar-accent-foreground font-medium'
+                      : 'text-sidebar-foreground hover:bg-slate-800/60'
+                  }`}
+                >
+                  <FileText className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
+                  {!collapsed && <span>API Docs</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate('/api-keys')}
+                  className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
+                    isActive('/api-keys')
+                      ? 'bg-slate-800 text-sidebar-accent-foreground font-medium'
+                      : 'text-sidebar-foreground hover:bg-slate-800/60'
+                  }`}
+                >
+                  <Key className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
+                  {!collapsed && <span>API Keys</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

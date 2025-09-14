@@ -209,7 +209,7 @@ export default function CompanyProfile() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-foreground">Company Profile</h2>
+        <h2 className="text-3xl font-bold text-foreground">Home</h2>
         <Select
           value={timeRange}
           onValueChange={(value: '7d' | '1m' | '3m' | '1y') =>
