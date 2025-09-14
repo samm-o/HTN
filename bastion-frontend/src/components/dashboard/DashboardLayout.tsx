@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { DashboardSidebar } from './DashboardSidebar';
+import { ReactNode } from "react";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { DashboardSidebar } from "./DashboardSidebar";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -18,14 +18,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
 
           <main className="flex-1 p-6 bg-background overflow-y-auto scrollbar-none overscroll-none">
-            <div className="min-h-full flex flex-col">
-              <div>
-                {children}
-              </div>
-              <footer className="mt-auto pt-4 border-t border-border text-xs text-muted-foreground">
-                © {new Date().getFullYear()} Bastion. All rights reserved.
-              </footer>
-            </div>
+            {children}
           </main>
         </div>
       </div>
