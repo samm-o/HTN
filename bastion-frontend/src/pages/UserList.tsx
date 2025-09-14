@@ -246,14 +246,6 @@ export default function UserList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-3xl font-bold text-foreground">Customers</h2>
-        <div className="flex items-center gap-4">
-          <Input
-            placeholder="Search by Customer ID"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64 bg-background border-border focus-visible:ring-primary/40"
-          />
-        </div>
         <div className="text-sm text-muted-foreground">
           Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
           {Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)} of{' '}
@@ -263,12 +255,22 @@ export default function UserList() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-foreground">
-            Customer Database
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Complete list of customers with dispute and approval information
-          </CardDescription>
+          <div className="flex flex-col gap-3 w-full">
+            <div className="flex items-center justify-between gap-4 w-full">
+              <CardTitle className="text-lg font-semibold text-foreground">
+                Customer Database
+              </CardTitle>
+              <Input
+                placeholder="Search by Customer ID"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-64 md:w-80 bg-background border-border focus-visible:ring-primary/40"
+              />
+            </div>
+            <CardDescription className="text-muted-foreground">
+              Complete list of customers with dispute and approval information
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>

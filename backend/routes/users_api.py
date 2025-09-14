@@ -111,12 +111,12 @@ async def search_users(
     try:
         offset = (page - 1) * limit
 
-        # Filtered users page
+        # Filtered users page - cast UUID id to text for ILIKE
         users_response = (
             supabase
             .table("users")
             .select("id, full_name, created_at, risk_score, is_flagged")
-            .ilike("id", f"%{q}%")
+            .filter("id::text", "ilike", f"%{q}%")
             .range(offset, offset + limit - 1)
             .execute()
         )
@@ -126,7 +126,7 @@ async def search_users(
             supabase
             .table("users")
             .select("id", count="exact")
-            .ilike("id", f"%{q}%")
+            .filter("id::text", "ilike", f"%{q}%")
             .execute()
         )
         total_users = count_response.count if count_response.count else 0
@@ -181,7 +181,8 @@ async def search_users(
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to search users: {str(e)}")
+        # Return the error message to help diagnose (can be narrowed later)
+        raise HTTPException(status_code=500, detail=f"Failed to search users: {type(e).__name__}: {str(e)}")
 
 @router.get("/{user_id}/details")
 async def get_user_details(user_id: str):
