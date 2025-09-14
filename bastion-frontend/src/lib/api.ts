@@ -1,7 +1,7 @@
 // API configuration and helper functions for Project BASTION frontend
 
 // Normalize base URL from env: use VITE_API_BASE_URL if set, otherwise default to relative URLs
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://bastion-backend.vercel.app';
 
 // Join base and endpoint safely without double slashes
 const joinUrl = (base: string, endpoint: string) => {
@@ -20,8 +20,14 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = joinUrl(this.baseUrl, endpoint);
     
-    // Do not add any headers automatically; pass through options as-is
-    const config: RequestInit = { ...options };
+    // Add Content-Type header for POST/PUT requests if not already set
+    const config: RequestInit = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    };
 
     try {
       const response = await fetch(url, config);

@@ -23,10 +23,24 @@ bastion_frontend_url = os.getenv("BASTION_FRONTEND_URL")
 @app.on_event("startup")
 async def startup_event():
     """Initialize risk score cache on startup"""
-    asyncio.create_task(risk_score_cache.initialize_cache())
+    try:
+        asyncio.create_task(risk_score_cache.initialize_cache())
+    except Exception as e:
+        print(f"Warning: Could not initialize cache: {e}")
 
 # Add CORS middleware for frontend connection
-origins = ['*']
+origins = [
+    "https://bastion-frontend.vercel.app",
+    "https://storefront-frontend.vercel.app", 
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5173",
+    "http://localhost:5174"
+]
+
+# Allow all origins in development
+if os.getenv("VERCEL_ENV") != "production":
+    origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
