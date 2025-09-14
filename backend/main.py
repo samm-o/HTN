@@ -31,15 +31,10 @@ origins = ['*']
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Global OPTIONS handler to ensure preflight gets a 204
-@app.options("/{path:path}")
-async def cors_preflight_handler(path: str = ""):
-    return Response(status_code=204)
 
 # Include routers
 app.include_router(customer_router)

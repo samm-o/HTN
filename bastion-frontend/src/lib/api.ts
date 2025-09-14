@@ -20,20 +20,8 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = joinUrl(this.baseUrl, endpoint);
     
-    // Only set Content-Type for requests with a body to avoid CORS preflight on simple GETs
-    const hasBody = typeof (options as any).body !== 'undefined' && (options as any).body !== null;
-    const method = (options.method || 'GET').toUpperCase();
-    const baseHeaders: Record<string, string> = {
-      ...(options.headers as Record<string, string> | undefined),
-    };
-    if (hasBody || method === 'POST' || method === 'PUT' || method === 'PATCH') {
-      baseHeaders['Content-Type'] = baseHeaders['Content-Type'] || 'application/json';
-    }
-
-    const config: RequestInit = {
-      ...options,
-      headers: baseHeaders,
-    };
+    // Do not add any headers automatically; pass through options as-is
+    const config: RequestInit = { ...options };
 
     try {
       const response = await fetch(url, config);
