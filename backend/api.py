@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 
 app = FastAPI(title="Project BASTION API", version="1.0.0")
 
-# Add CORS middleware
+# Add CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,9 +21,5 @@ def root():
 def health():
     return {"status": "ok"}
 
-@app.get("/api/v1/test")
-def test():
-    return {"test": "success", "message": "API is working"}
-
-# Export the app for Vercel
-handler = app
+# Wrap with Mangum for serverless
+handler = Mangum(app)
