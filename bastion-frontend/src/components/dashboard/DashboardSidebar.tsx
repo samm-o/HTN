@@ -65,16 +65,16 @@ export function DashboardSidebar() {
       <SidebarContent>
         <div className="h-16 border-b border-sidebar-border flex items-center justify-center">
           {collapsed ? (
-            <img 
-              src="/LogoBas.svg" 
-              alt="Bastion Logo" 
+            <img
+              src="/LogoBas.svg"
+              alt="Bastion Logo"
               className="h-8 w-8 text-sidebar-foreground"
             />
           ) : (
             <div className="flex items-center px-6 w-full">
-              <img 
-                src="/LogoBas.svg" 
-                alt="Bastion Logo" 
+              <img
+                src="/LogoBas.svg"
+                alt="Bastion Logo"
                 className="h-8 w-8 mr-2 text-sidebar-foreground"
               />
               <h2 className="font-bold text-xl text-sidebar-foreground">
@@ -114,7 +114,7 @@ export function DashboardSidebar() {
         {/* Developer API Section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/60 text-sm font-medium px-6 py-2">
-            Developer API
+            Developer Tools
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
