@@ -52,22 +52,20 @@ async def get_dashboard_metrics(
                 week_start = claim_date - timedelta(days=claim_date.weekday())
                 date_key = week_start.strftime("%b %d")
             elif time_range == "3m":
-                # Group by month
-                date_key = claim_date.strftime("%b %d")
+                # Group by 2 weeks (14 days)
+                days_since_epoch = (claim_date.replace(tzinfo=None) - datetime(1970, 1, 1)).days
+                week_group = days_since_epoch // 14
+                week_start = datetime(1970, 1, 1) + timedelta(days=week_group * 14)
+                date_key = week_start.strftime("%b %d")
             else:  # 1y
-                # Group by quarter
-                quarter = (claim_date.month - 1) // 3 + 1
-                date_key = f"Q{quarter} {claim_date.year}"
+                # Group by month
+                date_key = claim_date.strftime("%b %Y")
             
             if date_key not in date_groups:
                 date_groups[date_key] = {"suspicious": 0, "approved": 0}
             
-            # Determine if suspicious (high risk score or flagged user)
-            user_data = claim.get('users', {})
-            is_suspicious = user_data.get('risk_score', 0) > 70 or user_data.get('is_flagged', False)
-            
-            if is_suspicious:
-                date_groups[date_key]["suspicious"] += 1
+            # All disputes are suspicious disputes
+            date_groups[date_key]["suspicious"] += 1
             
             if claim.get('status') == 'APPROVED':
                 date_groups[date_key]["approved"] += 1
