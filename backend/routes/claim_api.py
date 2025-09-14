@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
 import uuid
-from datetime import datetime
 
 from schemas.claim_submission import ClaimSubmissionPayload
 from schemas.claim import ClaimResponse
+from schemas import ClaimStatus
 from crud.crud_customer import CustomerCRUD
 from crud.crud_store import StoreCRUD
 from crud.crud_claim import ClaimCRUD
@@ -12,25 +12,14 @@ from services.risk_score_cache import risk_score_cache
 
 router = APIRouter(prefix="/api/v1/claims", tags=["claims"])
 
-# Initialize services
 customer_crud = CustomerCRUD()
 store_crud = StoreCRUD()
 claim_crud = ClaimCRUD()
 ml_fraud_service = MLFraudService()
-# risk_score_cache is already imported as an instance
 
 @router.post("/submit", response_model=ClaimResponse)
 async def submit_claim(payload: ClaimSubmissionPayload):
-    """
-    Submit a new return claim for fraud detection analysis
-    
-    This endpoint:
-    1. Receives claim data with user ID
-    2. Links the claim to an existing user identity
-    3. Calculates fraud risk score
-    4. Stores the claim in the database
-    5. Returns the analysis results
-    """
+    """Submit a new return claim for fraud detection analysis"""
     try:
         # Extract data from payload
         user_id = payload.user_id
