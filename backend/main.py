@@ -28,6 +28,15 @@ async def startup_event():
     except Exception as e:
         print(f"Warning: Could not initialize cache: {e}")
 
+# Add explicit CORS headers for all responses
+@app.middleware("http")
+async def add_cors_header(request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
+
 # Add CORS middleware for frontend connection
 origins = [
     "https://bastion-frontend.vercel.app",
