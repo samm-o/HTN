@@ -16,6 +16,7 @@ import WebhookDocs from "./pages/WebhookDocs";
 import Settings from "./pages/Settings";
 import UserList from "./pages/UserList";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
@@ -26,21 +27,25 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <DashboardLayout>
-            <Routes>
-              <Route path="/" element={<CompanyProfile />} />
-              <Route path="/customers" element={<UserList />} />
-              <Route path="/claims" element={<Claims />} />
-              <Route path="/top-products" element={<TopProducts />} />
-              <Route path="/top-categories" element={<TopCategories />} />
-              <Route path="/api-docs" element={<ApiDocs />} />
-              <Route path="/api-keys" element={<ApiKeys />} />
-              <Route path="/webhooks" element={<Webhooks />} />
-              <Route path="/webhook-docs" element={<WebhookDocs />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </DashboardLayout>
+          <Routes>
+            {/* Public marketing landing page */}
+            <Route path="/" element={<Landing />} />
+            
+            {/* Application dashboard routes wrapped in DashboardLayout */}
+            <Route path="/dashboard" element={<DashboardLayout><CompanyProfile /></DashboardLayout>} />
+            <Route path="/customers" element={<DashboardLayout><UserList /></DashboardLayout>} />
+            <Route path="/claims" element={<DashboardLayout><Claims /></DashboardLayout>} />
+            <Route path="/top-products" element={<DashboardLayout><TopProducts /></DashboardLayout>} />
+            <Route path="/top-categories" element={<DashboardLayout><TopCategories /></DashboardLayout>} />
+            <Route path="/api-docs" element={<DashboardLayout><ApiDocs /></DashboardLayout>} />
+            <Route path="/api-keys" element={<DashboardLayout><ApiKeys /></DashboardLayout>} />
+            <Route path="/webhooks" element={<DashboardLayout><Webhooks /></DashboardLayout>} />
+            <Route path="/webhook-docs" element={<DashboardLayout><WebhookDocs /></DashboardLayout>} />
+            <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
+            
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<DashboardLayout><NotFound /></DashboardLayout>} />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

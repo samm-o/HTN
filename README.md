@@ -1,90 +1,83 @@
-# BASTION 🛡️
+# Bastion - The Fraud Shield for E-commerce
 
-**B2B E-commerce Fraud Detection Platform**
+A shared, privacy-safe “credit score for returns.” Bastion plugs into any returns flow, runs a one-time KYC on high-risk events, issues a universal **Bastion ID (UUID)**, and returns an **actionable risk score + reasons** - without sharing raw PII across merchants.
 
-Bastion helps e-commerce platforms identify and prevent return fraud by tracking customers across multiple stores using KYC verification. When customers make their first suspicious return, they verify their identity - creating a unique profile that follows them everywhere.
+---
 
-## The Problem
-- **$101 billion** lost to return fraud annually in the US
-- **14.5%** of e-commerce revenue lost to fraudulent returns
-- No way to track repeat offenders across different platforms
-- Companies assume customers are telling the truth
+## Inspiration
 
-## How It Works
-1. **Customer makes suspicious return** → Redirected to KYC verification
-2. **KYC creates unique ID** → Links customer across all platforms using Bastion
-3. **Fraud risk calculated** → AI analyzes return history and patterns
-4. **Decision support** → Retailers get data to approve/deny returns
+Return fraud silently drains e-commerce, costing retailers over $103 billion in 2024 alone ([read more about it here](https://www.retaildive.com/news/retailers-lost-billions-fraudulent-returns-2024/736393/))! False “package never arrived” claims, wardrobing, and empty-box returns cost far beyond merchandise; shipping, labor, and trust take the hit. We built **Bastion** to give developers and ops teams a *drop-in*, API-first shield that strengthens with every integration.
 
-## What E-commerce Sites Can Do With This Data
+---
 
-### Immediate Actions
-- **Block serial returners** - Identify customers with 4+ suspicious returns across platforms
-- **Dynamic return policies** - Stricter policies for high-risk customers, generous for good ones
-- **Targeted promotions** - Reward trustworthy customers with exclusive discounts
-- **Inventory protection** - Flag high-return items before they become problems
+## What Bastion Is
 
-### Business Intelligence
-- **Product insights** - See which items are returned most (Nike size 9 shoes, iPhone 16 Pro Max)
-- **Category analysis** - Identify problematic product categories (clothing, electronics)
-- **Payment method patterns** - Track fraud by payment type (prepaid cards = higher risk)
-- **Seasonal trends** - Understand when fraud spikes (holidays, sales events)
+### **Simple Fraud API**
+- Add enterprise-grade fraud checks to existing workflows **in minutes**  
+- Pull a user’s **risk score** and **dispute-history signals** (cross-platform, privacy-preserving)  
+- Automate decisions (approve/hold/manual review) via **outbound webhooks**
 
-### Revenue Recovery
-- **Reduce processing costs** - Stop wasting money on fraudulent return shipping/restocking
-- **Improve margins** - Keep legitimate inventory in circulation instead of processing fake returns
-- **Insurance claims** - Use fraud data to support insurance claims for losses
-- **Supplier negotiations** - Show suppliers which products have legitimate vs. fraudulent return rates
+### **Actionable Intelligence Dashboard**
+- Visualize **most-disputed products & categories** and **risk distributions**  
+- Drill into **claim data** (first-time vs. repeat, item category, etc.)  
 
-## Tech Stack
-- **Backend**: FastAPI + Supabase + Python
-- **Frontend**: React + TypeScript + Tailwind CSS
-- **Analytics**: Recharts for data visualization
+---
 
-## Business Impact Examples
+## How It Works (End-to-End)
 
-### Real-World Scenarios
-**Fashion Retailer**: "Customer returns 5 designer dresses claiming 'wrong size' across 3 different stores. Bastion flags them after the 2nd return - saves $2,000 in fraudulent returns."
+1. **Trigger** - A return/dispute is initiated (e.g., “package not received”) on a merchant’s site  
+2. **Create Claim** - Merchant calls `POST /claims` with event + minimal metadata  
+3. **Selective KYC** - If high-risk, Bastion triggers **one-time KYC** and issues a **Bastion ID**  
+4. **Risk Scoring** - Bastion computes a **risk score** using:
+   - Behavioral & velocity signals (repeat patterns, dispute frequency, category spikes)
+   - **Semantic similarity** to historical fraud narratives (Cohere Rerank over a vector DB)
+5. **Decisioning** - Bastion returns **dispute data** and **risk score** based on company and customers
+6. **Learning Loop** - Merchant posts final outcome using **inbound webhook**; models & category baselines update continuously
 
-**Electronics Store**: "iPhone returns spike 300% after new model launch. Bastion data shows 60% are from repeat returners using prepaid cards - store adjusts return policy for electronics."
+---
 
-**Multi-brand Marketplace**: "Seller complains about high return rates. Bastion shows 80% of returns come from 12 repeat customers across the platform - marketplace can take targeted action."
+## How We Built It
 
-## Setup (5 minutes)
+### 🧱 Architecture
+- **Backend:** FastAPI (Python) services for **claims**, **users**, and **analytics**  
+- **Database:** Supabase (PostgreSQL) with strict schemas and row-level security  
+- **Frontend:** React (Vite) + TypeScript, modular UI packages shared across apps  
+- **Pattern:** Service-oriented modules with clear interfaces and typed DTOs
 
-```bash
-# Backend
-cd backend && pip install -r requirements.txt
-python main.py  # Runs on localhost:8080
+### 🧠 Backend
+- Orchestrates claim intake, selective KYC, scoring, and decisioning
+- **Fraud detection engine:** uses **Cohere Rerank** to compare new claims against a **vector DB** of historical fraud cases  
+  - Produces a **semantic relevance score** that feeds the dynamic risk model  
+  - Helps uncover **non-obvious** patterns and emerging fraud narratives
+- Exposes clean REST endpoints (`/claims`, `/users`, `/analytics`) with validation and audit logging
 
-# Frontend (2 terminals)
-cd bastion-frontend && npm install && npm run dev  # localhost:5173
-cd storefront-frontend && npm install && npm run dev  # localhost:5174
-```
+### 🖥️ Frontend
+- **Merchant Dashboard:** BI-style views with interactive charts (Recharts)  
+  - Explore fraud trends, risk distributions, and **top disputed items/categories**  
+  - Drill into data (first-time vs. repeat claimants, by category, by time)
+- **Customer-Facing KYC Widget:**  
+  - Secure flow for completing verification  
+  - Minimal friction; responsive UI that fits any modern checkout/returns page
 
-**Environment**: Add Supabase credentials to `backend/.env`
+### 🔄 Event-Driven, Closed-Loop Webhooks
+- **Outbound webhooks:** push real-time decisions to merchant systems (e.g., “hold refund,” “manual review”)  
+- **Inbound webhooks:** merchants notify Bastion of final outcomes (accepted/denied)  
+- Creates a **closed learning loop** so feature weights and category baselines improve over time; **no polling required**
 
-## Key APIs
-- `POST /api/v1/claims/submit` - Submit return claim with KYC
-- `GET /api/v1/admin/analytics` - Get fraud analytics
-- `GET /api/v1/users` - View customer profiles
+---
 
-## 📄 License
+## Challenges We Tackled
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Actionable Insights vs. User Privacy** - Providing merchants with valuable fraud data without exposing a customer's PII (Personably Identifiable Information) or their shopping history with a competitor was a critical design challenge. We solved this by focusing on anonymized risk signals and aggregated behavioral patterns rather than raw personal data.
+- **Balancing AI Sensitivity** - Fine-tuning our AI-powered risk model to minimize false positives (flagging a legitimate customer) while effectively catching sophisticated fraud was an iterative process. We focused on creating a scoring system that was firm but fair. Data Consistency Across Platforms: Architecting a system to handle data from multiple sources required robust validation and a clear source of truth. We designed the Bastion ID to be the central key that links disparate claims without creating data conflicts.
+- **Data Consistency Across Platforms** - Architecting a system to handle data from multiple sources required robust validation and a clear source of truth. We designed the Bastion ID to be the central key that links disparate claims without creating data conflicts.
 
-## 🏆 Hackathon Context
+---
 
-Bastion was developed for Hack the North 2025 by Samuil Georgiev, Xirui Huang, Michael McVicar, and Stanley Pang. It demonstrates innovative approaches to e-commerce fraud prevention through:
-- Cross-platform customer tracking
-- KYC-based identity verification
-- AI-powered risk assessment
-- Privacy-compliant data handling
+## What’s Next
 
-## 📞 Contact
+- **Production-Grade KYC Integration** - Our priority is to integrate a production grade KYC service like Clear or AiPrise's third-party KYC service to replace our own verification system. This will provide enterprise-grade identity verification, enhancing our fraud detection accuracy and ensuring compliance.
+- **Customizable Risk Engines** - We plan to allow retailers to customize fraud detection parameters based on their specific industry (e.g., fashion vs. electronics) and risk tolerance, including configurable thresholds and custom scoring rules via the API.
+- **Risk Calculation & Enterprise Features** - Our vision is to expand our capabilities with more sophisticated ML models to determine a more accurate risk factor. We also plan to build out enterprise-grade features, including customizable dashboards and personalized reporting to support the largest e-commerce platforms.
 
-- Samuil Georgiev: s2georgi@uwaterloo.ca
-- Xirui Huang: xrhuang10@gmail.com
-- Michael McVicar: mxmow15@gmail.com
-- Stanley Pang: stanley.pang@mail.utoronto.ca
-
+---
