@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Building2, Users, BarChart3, Layers3, FileText, Key, ChevronDown, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
+import {
+  Building2,
+  Users,
+  BarChart3,
+  Layers3,
+  FileText,
+  Key,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
@@ -32,9 +41,13 @@ export function DashboardSidebar() {
   const navigate = useNavigate();
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
-  const [apiDocsOpen, setApiDocsOpen] = useState(location.pathname.startsWith('/api-docs'));
+  const [apiDocsOpen, setApiDocsOpen] = useState(
+    location.pathname.startsWith('/api-docs')
+  );
   const currentHash = location.hash || '#introduction';
-  const [webhookDocsOpen, setWebhookDocsOpen] = useState(location.pathname.startsWith('/webhook-docs'));
+  const [webhookDocsOpen, setWebhookDocsOpen] = useState(
+    location.pathname.startsWith('/webhook-docs')
+  );
 
   useEffect(() => {
     setApiDocsOpen(currentPath.startsWith('/api-docs'));
@@ -50,7 +63,6 @@ export function DashboardSidebar() {
   return (
     <Sidebar className={collapsed ? 'w-16' : 'w-64'} collapsible="icon">
       <SidebarContent>
-        <div className="flex flex-col h-full">
         <div className="h-16 border-b border-sidebar-border flex items-center justify-center">
           <h2
             className={`font-bold text-sidebar-foreground ${
@@ -91,7 +103,7 @@ export function DashboardSidebar() {
         {/* Developer API Section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/60 text-sm font-medium px-6 py-2">
-            Developer Tools
+            Developer API
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -118,7 +130,9 @@ export function DashboardSidebar() {
                   }`}
                   aria-expanded={!collapsed ? apiDocsOpen : undefined}
                 >
-                  <FileText className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
+                  <FileText
+                    className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`}
+                  />
                   {!collapsed && (
                     <div className="flex items-center justify-between w-full">
                       <span>API Docs</span>
@@ -134,13 +148,16 @@ export function DashboardSidebar() {
                 {!collapsed && (
                   <div
                     className={`mt-1 ml-10 flex flex-col gap-2 overflow-hidden transition-all duration-300 ${
-                      apiDocsOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+                      apiDocsOpen
+                        ? 'max-h-[600px] opacity-100'
+                        : 'max-h-0 opacity-0'
                     }`}
                   >
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#introduction'
+                        currentPath.startsWith('/api-docs') &&
+                        currentHash === '#introduction'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
@@ -151,7 +168,8 @@ export function DashboardSidebar() {
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#authentication'
+                        currentPath.startsWith('/api-docs') &&
+                        currentHash === '#authentication'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
@@ -162,51 +180,44 @@ export function DashboardSidebar() {
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#core-concepts'
+                        currentPath.startsWith('/api-docs') &&
+                        currentHash === '#data-models'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/api-docs#core-concepts')}
+                      onClick={() => navigate('/api-docs#data-models')}
                     >
-                      Core Concepts
+                      Data Models
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#get-users-kyc_email'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/api-docs#get-users-kyc_email')}
-                    >
-                      Retrieve a User Profile
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#post-claims'
+                        currentPath.startsWith('/api-docs') &&
+                        currentHash === '#post-claims'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
                       onClick={() => navigate('/api-docs#post-claims')}
                     >
-                      Submit a Claim
+                      POST /claims
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#webhooks'
+                        currentPath.startsWith('/api-docs') &&
+                        currentHash === '#get-users-kyc_email'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/api-docs#webhooks')}
+                      onClick={() => navigate('/api-docs#get-users-kyc_email')}
                     >
-                      Webhooks
+                      GET /users/{'{'}kyc_email{'}'}
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/api-docs') && currentHash === '#error-handling'
+                        currentPath.startsWith('/api-docs') &&
+                        currentHash === '#error-handling'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
@@ -241,7 +252,9 @@ export function DashboardSidebar() {
                   }`}
                   aria-expanded={!collapsed ? webhookDocsOpen : undefined}
                 >
-                  <FileText className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
+                  <FileText
+                    className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`}
+                  />
                   {!collapsed && (
                     <div className="flex items-center justify-between w-full">
                       <span>Webhook Docs</span>
@@ -256,63 +269,82 @@ export function DashboardSidebar() {
                 {!collapsed && (
                   <div
                     className={`mt-1 ml-10 flex flex-col gap-2 overflow-hidden transition-all duration-300 ${
-                      webhookDocsOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+                      webhookDocsOpen
+                        ? 'max-h-[600px] opacity-100'
+                        : 'max-h-0 opacity-0'
                     }`}
                   >
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#introduction'
+                        currentPath.startsWith('/webhook-docs') &&
+                        currentHash === '#introduction'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
                       onClick={() => navigate('/webhook-docs#introduction')}
                     >
-                      Introduction
+                      Overview
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#security-signatures'
+                        currentPath.startsWith('/webhook-docs') &&
+                        currentHash === '#signing'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/webhook-docs#security-signatures')}
+                      onClick={() => navigate('/webhook-docs#signing')}
                     >
-                      Security: Signatures
+                      Signatures
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#endpoint-url'
+                        currentPath.startsWith('/webhook-docs') &&
+                        currentHash === '#events'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/webhook-docs#endpoint-url')}
-                    >
-                      Endpoint URL
-                    </button>
-                    <button
-                      type="button"
-                      className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#event-types'
-                          ? 'text-sidebar-accent-foreground font-medium'
-                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
-                      }`}
-                      onClick={() => navigate('/webhook-docs#event-types')}
+                      onClick={() => navigate('/webhook-docs#events')}
                     >
                       Event Types
                     </button>
                     <button
                       type="button"
                       className={`text-left text-sm transition-colors ${
-                        currentPath.startsWith('/webhook-docs') && currentHash === '#best-practices'
+                        currentPath.startsWith('/webhook-docs') &&
+                        currentHash === '#manage'
                           ? 'text-sidebar-accent-foreground font-medium'
                           : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
                       }`}
-                      onClick={() => navigate('/webhook-docs#best-practices')}
+                      onClick={() => navigate('/webhook-docs#manage')}
                     >
-                      Best Practices
+                      Manage Endpoints
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') &&
+                        currentHash === '#retries'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#retries')}
+                    >
+                      Retries & Delivery
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-left text-sm transition-colors ${
+                        currentPath.startsWith('/webhook-docs') &&
+                        currentHash === '#security'
+                          ? 'text-sidebar-accent-foreground font-medium'
+                          : 'text-sidebar-foreground/90 hover:text-sidebar-foreground'
+                      }`}
+                      onClick={() => navigate('/webhook-docs#security')}
+                    >
+                      Security
                     </button>
                   </div>
                 )}
@@ -326,7 +358,9 @@ export function DashboardSidebar() {
                       : 'text-sidebar-foreground hover:bg-slate-800/60'
                   }`}
                 >
-                  <Key className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
+                  <Key
+                    className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`}
+                  />
                   {!collapsed && <span>API Keys</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -339,35 +373,15 @@ export function DashboardSidebar() {
                       : 'text-sidebar-foreground hover:bg-slate-800/60'
                   }`}
                 >
-                  <Layers3 className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
+                  <Layers3
+                    className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`}
+                  />
                   {!collapsed && <span>Webhooks</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* Sticky footer: Settings */}
-        <div className="mt-auto sticky bottom-0 bg-sidebar-background/80 backdrop-blur border-t border-sidebar-border">
-          <div className="py-2">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => navigate('/settings')}
-                  className={`w-full justify-start px-6 py-3 transition-colors rounded-md ${
-                    isActive('/settings')
-                      ? 'bg-slate-800 text-sidebar-accent-foreground font-medium'
-                      : 'text-sidebar-foreground hover:bg-slate-800/60'
-                  }`}
-                >
-                  <SettingsIcon className={`${collapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'}`} />
-                  {!collapsed && <span>Settings</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </div>
-        </div>
-        </div>
       </SidebarContent>
     </Sidebar>
   );

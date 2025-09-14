@@ -376,8 +376,8 @@ export default function CompanyProfile() {
                     key={index}
                     className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 border transform origin-center ${
                       hoveredCategoryIndex === index 
-                        ? 'bg-slate-800/60 border-slate-600 scale-[1.01]' 
-                        : 'bg-slate-900/40 border-slate-700/50 hover:bg-slate-800/30 hover:border-slate-600'
+                        ? 'bg-slate-700/40 border-slate-600 scale-[1.01]' 
+                        : 'bg-slate-800/20 border-slate-700/30 hover:bg-slate-700/30 hover:border-slate-600/50'
                     }`}
                     onMouseEnter={() => setHoveredCategoryIndex(index)}
                     onMouseLeave={() => setHoveredCategoryIndex(null)}

@@ -1,7 +1,19 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -9,9 +21,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { apiClient } from "@/lib/api";
+} from '@/components/ui/table';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { apiClient } from '@/lib/api';
 
 // Interfaces for API data
 interface User {
@@ -72,12 +84,14 @@ export default function UserList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [preloadedPages, setPreloadedPages] = useState<Map<number, User[]>>(new Map());
+  const [preloadedPages, setPreloadedPages] = useState<Map<number, User[]>>(
+    new Map()
+  );
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: ITEMS_PER_PAGE,
     total: 0,
-    pages: 0
+    pages: 0,
   });
 
   // Fetch users from API
@@ -86,10 +100,20 @@ export default function UserList() {
       try {
         setLoading(true);
         setError(null);
-        
-        const response = await apiClient.getUsersList(currentPage, ITEMS_PER_PAGE) as any;
+
+        const response = (await apiClient.getUsersList(
+          currentPage,
+          ITEMS_PER_PAGE
+        )) as any;
         setUsers(response.users as User[]);
-        setPagination(response.pagination || { page: 1, limit: ITEMS_PER_PAGE, total: 0, pages: 0 });
+        setPagination(
+          response.pagination || {
+            page: 1,
+            limit: ITEMS_PER_PAGE,
+            total: 0,
+            pages: 0,
+          }
+        );
       } catch (err) {
         console.error('Failed to fetch users:', err);
         setError('Failed to load users. Please try again.');
@@ -107,8 +131,13 @@ export default function UserList() {
       const nextPage = currentPage + 1;
       if (nextPage <= pagination.pages && !preloadedPages.has(nextPage)) {
         try {
-          const response = await apiClient.getUsersList(nextPage, ITEMS_PER_PAGE) as any;
-          setPreloadedPages(prev => new Map(prev).set(nextPage, response.users as User[]));
+          const response = (await apiClient.getUsersList(
+            nextPage,
+            ITEMS_PER_PAGE
+          )) as any;
+          setPreloadedPages((prev) =>
+            new Map(prev).set(nextPage, response.users as User[])
+          );
         } catch (err) {
           console.error('Failed to preload next page:', err);
         }
@@ -132,10 +161,14 @@ export default function UserList() {
     }
   };
 
-  const disputeTotalPages = selectedUser ? Math.ceil(selectedUser.claims.length / ITEMS_PER_PAGE) : 0;
+  const disputeTotalPages = selectedUser
+    ? Math.ceil(selectedUser.claims.length / ITEMS_PER_PAGE)
+    : 0;
   const disputeStartIndex = (disputePage - 1) * ITEMS_PER_PAGE;
   const disputeEndIndex = disputeStartIndex + ITEMS_PER_PAGE;
-  const currentDisputes = selectedUser ? selectedUser.claims.slice(disputeStartIndex, disputeEndIndex) : [];
+  const currentDisputes = selectedUser
+    ? selectedUser.claims.slice(disputeStartIndex, disputeEndIndex)
+    : [];
 
   if (loading) {
     return (
@@ -160,10 +193,13 @@ export default function UserList() {
                 <div className="h-4 w-28 bg-slate-800 rounded animate-pulse" />
                 <div className="h-4 w-16 bg-slate-800 rounded animate-pulse" />
               </div>
-              
+
               {/* Table Rows Skeleton */}
               {Array.from({ length: 8 }).map((_, index) => (
-                <div key={index} className="grid grid-cols-5 gap-4 py-3 border-b border-slate-800/50">
+                <div
+                  key={index}
+                  className="grid grid-cols-5 gap-4 py-3 border-b border-slate-800/50"
+                >
                   <div className="h-4 w-16 bg-slate-800/60 rounded animate-pulse" />
                   <div className="h-4 w-20 bg-slate-800/60 rounded animate-pulse" />
                   <div className="h-4 w-12 bg-slate-800/60 rounded animate-pulse" />
@@ -172,7 +208,7 @@ export default function UserList() {
                 </div>
               ))}
             </div>
-            
+
             {/* Pagination Skeleton */}
             <div className="flex items-center justify-between pt-6">
               <div className="h-4 w-32 bg-slate-800 rounded animate-pulse" />
@@ -197,13 +233,17 @@ export default function UserList() {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-foreground">Customers</h2>
         <div className="text-sm text-muted-foreground">
-          Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)} of {pagination.total} customers
+          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+          {Math.min(currentPage * ITEMS_PER_PAGE, pagination.total)} of{' '}
+          {pagination.total} customers
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-foreground">Customer Database</CardTitle>
+          <CardTitle className="text-lg font-semibold text-foreground">
+            Customer Database
+          </CardTitle>
           <CardDescription className="text-muted-foreground">
             Complete list of customers with dispute and approval information
           </CardDescription>
@@ -212,20 +252,43 @@ export default function UserList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-muted-foreground">Customer ID</TableHead>
-                <TableHead className="text-muted-foreground">Suspicious Disputes</TableHead>
-                <TableHead className="text-muted-foreground">Disputes Approved</TableHead>
-                <TableHead className="text-muted-foreground">Last Dispute Date</TableHead>
+                <TableHead className="text-muted-foreground">
+                  Customer ID
+                </TableHead>
+                <TableHead className="text-muted-foreground">
+                  Fraud Score
+                </TableHead>
+                <TableHead className="text-muted-foreground">
+                  Approval Rate
+                </TableHead>
+                <TableHead className="text-muted-foreground">
+                  Last Dispute Date
+                </TableHead>
                 <TableHead className="text-muted-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user, index) => (
                 <TableRow key={index} className="border-border">
-                  <TableCell className="font-mono text-sm text-foreground">{user.id}</TableCell>
-                  <TableCell className="text-foreground">{user.total_disputes}</TableCell>
-                  <TableCell className="text-foreground">{user.approved_disputes}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.last_activity ? new Date(user.last_activity).toLocaleDateString() : 'Never'}</TableCell>
+                  <TableCell className="font-mono text-sm text-foreground">
+                    {user.id}
+                  </TableCell>
+                  <TableCell className="text-foreground">
+                    {user.risk_score}
+                  </TableCell>
+                  <TableCell className="text-foreground">
+                    {user.total_disputes > 0
+                      ? Math.round(
+                          (user.approved_disputes / user.total_disputes) * 100
+                        )
+                      : 0}
+                    %
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {user.last_activity
+                      ? new Date(user.last_activity).toLocaleDateString()
+                      : 'Never'}
+                  </TableCell>
                   <TableCell>
                     <Button
                       variant="outline"
@@ -242,22 +305,22 @@ export default function UserList() {
           </Table>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between mt-6">
+          <div className="flex items-center justify-between mt-4">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
               className="flex items-center gap-2"
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
-            
+
             <span className="text-sm text-muted-foreground">
               Page {currentPage} of {pagination.pages}
             </span>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -282,92 +345,134 @@ export default function UserList() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto scrollbar-none">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-foreground">Customer Profile</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Customer Profile
+            </DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Detailed information and dispute history
             </DialogDescription>
+            <p className="text-sm text-muted-foreground font-mono mt-2">
+              ID: {selectedUser?.user.id}
+            </p>
           </DialogHeader>
 
           {selectedUser && (
             <div className="space-y-6">
-              {/* Customer Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Customer ID</p>
-                  <p className="font-mono text-sm text-foreground">{selectedUser.user.id}</p>
-                </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Full Name</p>
-                  <p className="text-lg font-semibold text-foreground">{selectedUser.user.full_name}</p>
-                </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Total Claims</p>
-                  <p className="text-lg font-semibold text-blue-600">{selectedUser.user.total_claims}</p>
-                </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Approved Claims</p>
-                  <p className="text-lg font-semibold text-green-600">{selectedUser.user.approved_claims}</p>
-                </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Risk Score</p>
-                  <p className="text-lg font-semibold text-foreground">
-                    {selectedUser.user.risk_score !== null ? selectedUser.user.risk_score : 'N/A'}
+              {/* Customer Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-card p-6 rounded-lg border">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Suspicious Disputes
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {selectedUser.user.total_claims -
+                      selectedUser.user.approved_claims}
                   </p>
                 </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Flagged</p>
-                  <p className="text-lg font-semibold text-foreground">{selectedUser.user.is_flagged ? 'Yes' : 'No'}</p>
+
+                <div className="bg-card p-6 rounded-lg border">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Approved Disputes
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {selectedUser.user.approved_claims}
+                  </p>
                 </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Total Claim Value</p>
-                  <p className="text-lg font-semibold text-foreground">${selectedUser.user.total_claim_value.toFixed(2)}</p>
+
+                <div className="bg-card p-6 rounded-lg border">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Approval Rate
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {selectedUser.user.total_claims > 0
+                      ? Math.round(
+                          (selectedUser.user.approved_claims /
+                            selectedUser.user.total_claims) *
+                            100
+                        )
+                      : 0}
+                    %
+                  </p>
                 </div>
-                <div className="bg-card p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Created</p>
-                  <p className="text-lg font-semibold text-foreground">{new Date(selectedUser.user.created_at).toLocaleDateString()}</p>
+
+                <div className="bg-card p-6 rounded-lg border">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Fraud Score
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {selectedUser.user.risk_score}
+                  </p>
                 </div>
               </div>
 
               {/* Claims History */}
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Claims History</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Claims History
+                </h3>
                 {selectedUser.claims.length === 0 && (
                   <p className="text-center text-muted-foreground py-8">
                     No claims history available for this user.
                   </p>
                 )}
-                {currentDisputes.map((claim, index) => (
-                  <div key={index} className="border border-border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-semibold text-foreground">{new Date(claim.created_at).toLocaleDateString()}</p>
-                        <p className="text-sm text-muted-foreground">{claim.store_name}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          claim.status === 'APPROVED'
-                            ? 'bg-green-100 text-green-800'
-                            : claim.status === 'PENDING'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {claim.status}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">Total Value: ${claim.total_value.toFixed(2)}</p>
-                    <div className="text-sm text-foreground mb-2">
-                      <p className="font-medium">Items:</p>
-                      <ul className="list-disc list-inside ml-2">
-                        {claim.items.map((item, itemIndex) => (
-                          <li key={itemIndex}>
-                            {item.item_name} - ${item.price} x {item.quantity} ({item.category})
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-muted-foreground">
+                        Date
+                      </TableHead>
+                      <TableHead className="text-muted-foreground">
+                        Store
+                      </TableHead>
+                      <TableHead className="text-muted-foreground">
+                        Total Value
+                      </TableHead>
+                      <TableHead className="text-muted-foreground">
+                        Item
+                      </TableHead>
+                      <TableHead className="text-muted-foreground text-right">
+                        Status
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentDisputes.map((claim, index) => (
+                      <TableRow key={index} className="border-border">
+                        <TableCell className="text-foreground">
+                          {new Date(claim.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          {claim.store_name}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          ${claim.total_value.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          <div className="text-sm">
+                            {claim.items.map((item, itemIndex) => (
+                              <div key={itemIndex} className="mb-1">
+                                {item.item_name}
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              claim.status === 'APPROVED'
+                                ? 'bg-green-100 text-green-800'
+                                : claim.status === 'PENDING'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {claim.status}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
 
                 {/* Pagination for disputes */}
                 {disputeTotalPages > 1 && (
@@ -375,22 +480,28 @@ export default function UserList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setDisputePage(prev => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setDisputePage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={disputePage === 1}
                       className="flex items-center gap-2"
                     >
                       <ChevronLeft className="h-4 w-4" />
                       Previous
                     </Button>
-                    
+
                     <span className="text-sm text-muted-foreground">
                       Page {disputePage} of {disputeTotalPages}
                     </span>
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setDisputePage(prev => Math.min(prev + 1, disputeTotalPages))}
+                      onClick={() =>
+                        setDisputePage((prev) =>
+                          Math.min(prev + 1, disputeTotalPages)
+                        )
+                      }
                       disabled={disputePage === disputeTotalPages}
                       className="flex items-center gap-2"
                     >
