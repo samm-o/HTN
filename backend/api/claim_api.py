@@ -2,11 +2,13 @@ from fastapi import APIRouter, HTTPException, status
 import uuid
 from datetime import datetime
 
-from schemas import ClaimSubmissionPayload, ClaimResponse, ClaimStatus
+from schemas.claim_submission import ClaimSubmissionPayload
+from schemas.claim import ClaimResponse
 from crud.crud_customer import CustomerCRUD
 from crud.crud_store import StoreCRUD
 from crud.crud_claim import ClaimCRUD
-from services.fraud_detection import FraudDetectionService
+from services.ml_fraud_service import MLFraudService
+from services.risk_score_cache import risk_score_cache
 
 router = APIRouter(prefix="/api/v1/claims", tags=["claims"])
 
@@ -14,7 +16,8 @@ router = APIRouter(prefix="/api/v1/claims", tags=["claims"])
 customer_crud = CustomerCRUD()
 store_crud = StoreCRUD()
 claim_crud = ClaimCRUD()
-fraud_service = FraudDetectionService()
+ml_fraud_service = MLFraudService()
+# risk_score_cache is already imported as an instance
 
 @router.post("/submit", response_model=ClaimResponse)
 async def submit_claim(payload: ClaimSubmissionPayload):
@@ -49,16 +52,29 @@ async def submit_claim(payload: ClaimSubmissionPayload):
                 detail=f"Store with ID {claim_context.store_id} not found"
             )
         
-        # Calculate fraud risk score
-        risk_score = fraud_service.calculate_risk_score(
+        # Convert claim data for ML analysis
+        claim_data_dict = [
+            {
+                "item_name": item.item_name,
+                "category": item.category,
+                "price": item.price,
+                "quantity": item.quantity,
+                "url": item.url
+            }
+            for item in claim_context.claim_data
+        ]
+        
+        # Calculate fraud risk score using ML service
+        ml_result = await ml_fraud_service.calculate_fraud_score(
             user_id=user_id,
-            claim_data=claim_context.claim_data,
-            email_at_store=claim_context.email_at_store,
-            store_id=claim_context.store_id
+            claim_data=claim_data_dict
         )
         
+        risk_score = ml_result["fraud_score"]
+        analysis_method = "ML Enhanced"
+        
         # Determine if user should be flagged
-        should_flag = fraud_service.should_flag_user(risk_score, user_id)
+        should_flag = await ml_fraud_service.should_flag_user(risk_score, user_id)
         
         # Update user's risk score and flagged status
         await customer_crud.update_user_risk_score(user_id, risk_score, should_flag)
@@ -73,14 +89,17 @@ async def submit_claim(payload: ClaimSubmissionPayload):
         
         # Determine response message
         if should_flag:
-            message = "Claim submitted - HIGH RISK detected. Manual review required."
+            message = f"Claim submitted - HIGH RISK detected ({analysis_method}: {risk_score}/100). Manual review required."
             claim_status = ClaimStatus.PENDING
-        elif risk_score >= 50:
-            message = "Claim submitted - Medium risk detected. Additional verification may be required."
+        elif risk_score >= 60:
+            message = f"Claim submitted - Medium risk detected ({analysis_method}: {risk_score}/100). Additional verification may be required."
             claim_status = ClaimStatus.PENDING
         else:
-            message = "Claim submitted successfully - Low risk detected."
+            message = f"Claim submitted successfully - Low risk detected ({analysis_method}: {risk_score}/100)."
             claim_status = ClaimStatus.PENDING
+        
+        # Trigger risk score recalculation for this user
+        await risk_score_cache.recalculate_user_risk_score(str(user_id))
         
         return ClaimResponse(
             claim_id=uuid.UUID(claim['id']),
