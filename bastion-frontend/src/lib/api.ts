@@ -1,6 +1,13 @@
 // API configuration and helper functions for Project BASTION frontend
 
-const API_BASE_URL = 'http://localhost:8000';
+// Normalize base URL from env: use VITE_API_BASE_URL if set, otherwise default to relative URLs
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
+// Join base and endpoint safely without double slashes
+const joinUrl = (base: string, endpoint: string) => {
+  if (!base) return endpoint; // relative path (proxied in dev)
+  return `${base}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+};
 
 // API client with error handling
 class ApiClient {
@@ -11,7 +18,7 @@ class ApiClient {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+    const url = joinUrl(this.baseUrl, endpoint);
     
     const config: RequestInit = {
       headers: {

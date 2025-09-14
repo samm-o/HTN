@@ -10,8 +10,14 @@ from api.analytics_api import router as analytics_router
 from api.users_api import router as users_router
 from services.risk_score_cache import risk_score_cache
 import asyncio
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI(title="Project BASTION - B2B Fraud Detection API", version="1.0.0")
+storefront_url = os.getenv("STOREFRONT_URL")
+bastion_frontend_url = os.getenv("BASTION_FRONTEND_URL")
 
 @app.on_event("startup")
 async def startup_event():
@@ -21,7 +27,7 @@ async def startup_event():
 # Add CORS middleware for frontend connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8080", "http://localhost:8081", "http://localhost:8082"],
+    allow_origins=["http://localhost:3000", "http://localhost:8080", "http://localhost:8081", "http://localhost:8082", storefront_url, bastion_frontend_url],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
