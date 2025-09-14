@@ -26,6 +26,54 @@ function CodeBlock({
       // ignore
     }
   };
+
+  const escapeHtml = (str: string) =>
+    str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;");
+
+  const highlightJSON = (src: string) => {
+    let s = escapeHtml(src);
+    // keys
+    s = s.replace(/\"([^\"]+)\"\s*:/g, '<span class="tok-key">"$1"</span>:');
+    // strings
+    s = s.replace(/:\s*\"([^\"]*)\"/g, ': <span class="tok-string">"$1"</span>');
+    // numbers
+    s = s.replace(/:\s*(-?\d+(?:\.\d+)?)/g, ': <span class="tok-number">$1</span>');
+    // booleans/null
+    s = s.replace(/:\s*\b(true|false|null)\b/g, ': <span class="tok-atom">$1</span>');
+    return s;
+  };
+
+  const kw = {
+    javascript:
+      /\b(const|let|var|function|return|if|else|for|while|try|catch|finally|new|class|extends|import|from|export|await|async|throw)\b/g,
+    python:
+      /\b(def|return|if|elif|else|for|while|try|except|finally|import|from|as|class|with|lambda|pass|raise|yield|True|False|None)\b/g,
+    bash: /\b(if|then|else|fi|for|in|do|done|case|esac|function|return|export)\b/g,
+  } as const;
+
+  const highlightGeneric = (src: string, lang: "bash" | "python" | "javascript") => {
+    let s = escapeHtml(src);
+    // comments
+    if (lang === "bash") s = s.replace(/(^|\s)#([^\n]*)/g, '$1<span class="tok-comment">#$2</span>');
+    if (lang === "javascript") s = s.replace(/\/\/([^\n]*)/g, '<span class="tok-comment">//$1</span>');
+    if (lang === "python") s = s.replace(/(^|\s)#([^\n]*)/g, '$1<span class="tok-comment">#$2</span>');
+    // strings
+    s = s.replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, (m) => `<span class="tok-string">${m}</span>`);
+    // numbers
+    s = s.replace(/\b-?\d+(?:\.\d+)?\b/g, (m) => `<span class="tok-number">${m}</span>`);
+    // keywords
+    const regex = kw[lang];
+    s = s.replace(regex, (m) => `<span class="tok-kw">${m}</span>`);
+    return s;
+  };
+
+  const highlighted =
+    lang === "json" ? highlightJSON(code) : highlightGeneric(code, lang);
+
   return (
     <div className="relative group">
       <button
@@ -37,7 +85,10 @@ function CodeBlock({
         {copied ? "Copied" : "Copy"}
       </button>
       <pre className="pretty-scrollbar overflow-x-auto overflow-y-hidden max-w-full">
-        <code className={`language-${lang}`}>{code}</code>
+        <code
+          className={`language-${lang}`}
+          dangerouslySetInnerHTML={{ __html: highlighted }}
+        />
       </pre>
     </div>
   );
@@ -61,7 +112,7 @@ export default function WebhookDocs() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-foreground">Bastion Inbound Webhooks</h2>
+        <h2 className="text-3xl font-bold text-foreground">Bastion Webhooks</h2>
       </div>
 
       {/* Subtle scrollbar style */}
@@ -72,15 +123,22 @@ export default function WebhookDocs() {
         .pretty-scrollbar::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 9999px; }
         .pretty-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.5); }
         .pretty-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(148,163,184,0.5) transparent; }
+        /* Lightweight token colors */
+        .tok-key { color: #93c5fd; }
+        .tok-string { color: #86efac; }
+        .tok-number { color: #fca5a5; }
+        .tok-atom { color: #fbbf24; }
+        .tok-kw { color: #c4b5fd; }
+        .tok-comment { color: #94a3b8; font-style: italic; }
       `}</style>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-foreground">
-            Inbound Webhooks
+            Webhooks Overview
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Send Bastion real-time updates about your customer lifecycle to build richer, proactive fraud intelligence.
+            Bastion supports a two-way, event-driven integration. You can send lifecycle events to Bastion (Inbound) and Bastion will send real-time fraud alerts back to your systems (Outbound).
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -91,75 +149,53 @@ export default function WebhookDocs() {
                 <div className="md:col-span-12 space-y-3">
                   <h3 className="text-xl font-semibold text-foreground">Introduction</h3>
                   <p>
-                    While you can send us claim data via the API, the most powerful way to integrate with Bastion is through webhooks. By configuring webhooks in your e-commerce platform or backend, you can send Bastion real-time updates about events in the customer lifecycle.
+                    Bastion webhooks enable a two-way, event-driven integration. Your systems can <strong>send</strong> Bastion rich lifecycle events that improve risk accuracy (Inbound), and Bastion can <strong>send</strong> you real-time alerts when our models detect risks that require action (Outbound).
                   </p>
                   <p>
-                    This allows Bastion to build a much richer, more accurate risk profile for each user before a claim is even made. It turns your integration into a "set it and forget it" process, automating data sharing and dramatically improving the accuracy of our fraud detection.
+                    This model automates data sharing and decisioning, allowing your team to proactively mitigate fraud and streamline operations.
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* Security: Verifying Webhook Signatures */}
-            <section id="security-signatures" className="scroll-mt-24">
+            {/* Outbound Webhooks (Bastion to You) */}
+            <section id="outbound-webhooks" className="scroll-mt-24">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                 <div className="md:col-span-12 space-y-3">
-                  <h3 className="text-xl font-semibold text-foreground">Security: Verifying Webhook Signatures</h3>
+                  <h3 className="text-xl font-semibold text-foreground">Outbound Webhooks (Bastion to You)</h3>
                   <p>
-                    To ensure that the webhook requests sent to Bastion are genuinely from your server and not a malicious third party, we use webhook signatures. When you create an inbound webhook endpoint in your Bastion Dashboard, we will provide you with a unique signing secret.
+                    Outbound webhooks are the recommended way to automate actions in your systems based on Bastion’s fraud analysis. Configure your endpoint URL(s) in the Dashboard under <strong>Settings &gt; Webhooks</strong>.
                   </p>
-                  <p>
-                    Your server must use this secret to create a signature for each payload and include it in the <code>Bastion-Signature</code> HTTP header. Bastion will then use the same secret to verify the signature. If the signature is missing or invalid, we will reject the request. The signature is a HMAC-SHA256 hash of the timestamp and the raw request body.
-                  </p>
+                  <p className="font-medium text-foreground">Key Event Types</p>
+                  <ul className="list-disc pl-5">
+                    <li><code>claim.risk_assessment.high</code>: Triggered when a submitted claim results in a risk score above a critical threshold.</li>
+                    <li><code>user.flagged</code>: Triggered when an analyst flags a user in the Bastion dashboard.</li>
+                  </ul>
                   <div className="rounded-lg border bg-card p-4">
-                    <div className="text-foreground font-medium mb-2">Example Code: How Bastion verifies signatures (conceptual, Python)</div>
+                    <div className="text-foreground font-medium mb-2">Example Payload: claim.risk_assessment.high</div>
                     <CodeBlock
-                      lang="python"
-                      code={`# This is how Bastion would verify the signature your server sends.
-import hmac
-import hashlib
-import time
-
-# Your secret, obtained from the Bastion Dashboard
-signing_secret = "whsec_YOUR_SIGNING_SECRET"
-
-# Data received from your webhook request
-timestamp_from_header = "1678886400" # Example timestamp
-body_from_request = '{"event_type": "order.created", ...}'
-signature_from_header = "v1,t=1678886400,s=..." # Example signature
-
-# 1. Create the string to sign
-signed_payload = f"{timestamp_from_header}.{body_from_request}"
-
-# 2. Compute the expected signature
-expected_signature = hmac.new(
-    signing_secret.encode('utf-8'),
-    signed_payload.encode('utf-8'),
-    hashlib.sha256
-).hexdigest()
-
-# 3. Compare signatures securely
-# (Simplified comparison for clarity)
-is_valid = (f"v1,t={timestamp_from_header},s={expected_signature}" == signature_from_header)
-
-if not is_valid:
-    # Reject the request
-    print("Webhook signature is invalid!")`}
+                      lang="json"
+                      code={`{\n  "event_id": "evt_uuid_123",\n  "event_type": "claim.risk_assessment.high",\n  "created_at": "2025-11-01T10:00:00Z",\n  "data": {\n    "claim_id": "claim_uuid_C3",\n    "user_id": "user_uuid_111AAA",\n    "kyc_email": "jane.d.doe@gmail.com",\n    "risk_score": 85,\n    "reasons": ["Multiple accounts at store", "High-value item in claim"]\n  }\n}`}
                     />
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* Your Webhook Endpoint */}
-            <section id="endpoint-url" className="scroll-mt-24">
+            {/* Verifying Outbound Webhooks */}
+            <section id="verify-outbound" className="scroll-mt-24">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                 <div className="md:col-span-12 space-y-3">
-                  <h3 className="text-xl font-semibold text-foreground">Your Webhook Endpoint</h3>
+                  <h3 className="text-xl font-semibold text-foreground">Verifying Outbound Webhooks</h3>
                   <p>
-                    When you configure webhooks, you must provide your unique webhook endpoint URL to your e-commerce platform. Bastion will generate this URL for you in the Dashboard.
+                    For security, all outbound webhooks from Bastion are signed with a unique signing secret. Your server must verify the signature on each request to ensure authenticity and integrity before processing.
                   </p>
                   <div className="rounded-lg border bg-card p-4">
+                    <div className="text-foreground font-medium mb-2">Merchant-side Verification (Node.js example)</div>
+                    <CodeBlock
+                      lang="javascript"
+                      code={`// Express.js-style verification middleware (conceptual)\nconst crypto = require('crypto');\n\nfunction verifyBastionSignature(req, res, next) {\n  const signature = req.header('Bastion-Signature');\n  const timestamp = req.header('Bastion-Timestamp');\n  const signingSecret = process.env.BASTION_OUTBOUND_WEBHOOK_SECRET; // from Dashboard\n\n  if (!signature || !timestamp) {\n    return res.status(400).send('Missing signature headers');\n  }\n\n  const rawBody = req.rawBody || JSON.stringify(req.body);\n  const signedPayload = timestamp + '.' + rawBody;\n  const expected = crypto\n    .createHmac('sha256', signingSecret)\n    .update(signedPayload)\n    .digest('hex');\n\n  const computedHeader = 'v1,t=' + timestamp + ',s=' + expected;\n  if (!crypto.timingSafeEqual(Buffer.from(computedHeader), Buffer.from(signature))) {\n    return res.status(400).send('Invalid signature');\n  }\n\n  return next();\n}\n\nmodule.exports = { verifyBastionSignature };`}
+                    />
                     <div className="text-foreground font-medium mb-2">Your Unique Endpoint URL</div>
                     <CodeBlock lang="bash" code={`https://inbound-api.bastion.com/wh/YOUR_UNIQUE_MERCHANT_ID`} />
                   </div>
@@ -258,18 +294,18 @@ if not is_valid:
               </div>
             </section>
 
-            {/* Best Practices */}
+            {/* Best Practices (applies to both inbound and outbound) */}
             <section id="best-practices" className="scroll-mt-24">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                 <div className="md:col-span-12 space-y-3">
                   <h3 className="text-xl font-semibold text-foreground">Best Practices</h3>
-                  <p>To ensure a robust and reliable webhook integration, please follow these best practices.</p>
+                  <p>To ensure a robust and reliable webhook integration (for both inbound and outbound webhooks), please follow these best practices.</p>
                   <ul className="list-disc pl-5">
                     <li>
-                      <span className="font-medium text-foreground">Respond Quickly:</span> Your endpoint should return a <code>200 OK</code> status code as quickly as possible, before running any complex logic. This acknowledges receipt of the webhook. If Bastion doesn't receive a <code>200 OK</code> in a timely manner, it will consider the delivery a failure and may retry.
+                      <span className="font-medium text-foreground">Respond Quickly:</span> Your endpoint should return a <code>200 OK</code> status code as quickly as possible, before running any complex logic. This acknowledges receipt of the webhook. If the sender doesn't receive a <code>200 OK</code> in a timely manner, it will consider the delivery a failure and may retry.
                     </li>
                     <li>
-                      <span className="font-medium text-foreground">Handle Retries:</span> Bastion may send the same event more than once. Design your webhook handler to be idempotent by tracking a unique event ID and ensuring repeats don't cause side effects.
+                      <span className="font-medium text-foreground">Handle Retries:</span> Events may be delivered more than once. Design your webhook handler to be idempotent by tracking a unique <code>event_id</code> and ensuring repeats don't cause side effects.
                     </li>
                   </ul>
                 </div>

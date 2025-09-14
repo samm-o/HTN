@@ -82,7 +82,7 @@ export default function ApiDocs() {
     lang,
   }: {
     code: string;
-    lang: "bash" | "json" | "python" | "javascript";
+    lang: "bash" | "json" | "python" | "javascript" | "http";
   }) => {
     const [copied, setCopied] = useState(false);
     const handleCopy = async () => {
@@ -94,6 +94,56 @@ export default function ApiDocs() {
         // ignore
       }
     };
+
+    const escapeHtml = (str: string) =>
+      str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;");
+
+    const highlightJSON = (src: string) => {
+      let s = escapeHtml(src);
+      // keys
+      s = s.replace(/\"([^\"]+)\"\s*:/g, '<span class="tok-key">"$1"</span>:');
+      // strings
+      s = s.replace(/:\s*\"([^\"]*)\"/g, ': <span class="tok-string">"$1"</span>');
+      // numbers
+      s = s.replace(/:\s*(-?\d+(?:\.\d+)?)/g, ': <span class="tok-number">$1</span>');
+      // booleans/null
+      s = s.replace(/:\s*\b(true|false|null)\b/g, ': <span class="tok-atom">$1</span>');
+      return s;
+    };
+
+    const kw = {
+      javascript:
+        /\b(const|let|var|function|return|if|else|for|while|try|catch|finally|new|class|extends|import|from|export|await|async|throw)\b/g,
+      python:
+        /\b(def|return|if|elif|else|for|while|try|except|finally|import|from|as|class|with|lambda|pass|raise|yield|True|False|None)\b/g,
+      bash: /\b(if|then|else|fi|for|in|do|done|case|esac|function|return|export)\b/g,
+    } as const;
+
+    const highlightGeneric = (src: string, lang: "bash" | "python" | "javascript") => {
+      let s = escapeHtml(src);
+      // comments
+      if (lang === "bash") s = s.replace(/(^|\s)#([^\n]*)/g, '$1<span class="tok-comment">#$2</span>');
+      if (lang === "javascript") s = s.replace(/\/\/([^\n]*)/g, '<span class="tok-comment">//$1</span>');
+      if (lang === "python") s = s.replace(/(^|\s)#([^\n]*)/g, '$1<span class="tok-comment">#$2</span>');
+      // strings
+      s = s.replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, (m) => `<span class="tok-string">${m}</span>`);
+      // numbers
+      s = s.replace(/\b-?\d+(?:\.\d+)?\b/g, (m) => `<span class="tok-number">${m}</span>`);
+      // keywords
+      const regex = kw[lang];
+      s = s.replace(regex, (m) => `<span class="tok-kw">${m}</span>`);
+      return s;
+    };
+
+    let highlighted = "";
+    if (lang === "json") highlighted = highlightJSON(code);
+    else if (lang === "bash" || lang === "python" || lang === "javascript") highlighted = highlightGeneric(code, lang);
+    else highlighted = escapeHtml(code); // http or others as plain text
+
     return (
       <div className="relative group">
         <button
@@ -105,7 +155,10 @@ export default function ApiDocs() {
           {copied ? "Copied" : "Copy"}
         </button>
         <pre className="pretty-scrollbar overflow-x-auto overflow-y-hidden max-w-full">
-          <code className={`language-${lang}`}>{code}</code>
+          <code
+            className={`language-${lang}`}
+            dangerouslySetInnerHTML={{ __html: highlighted }}
+          />
         </pre>
       </div>
     );
@@ -127,6 +180,13 @@ export default function ApiDocs() {
         .pretty-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.5); }
         /* Firefox */
         .pretty-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(148,163,184,0.5) transparent; }
+        /* Lightweight token colors */
+        .tok-key { color: #93c5fd; }         /* light blue */
+        .tok-string { color: #86efac; }      /* green */
+        .tok-number { color: #fca5a5; }      /* red */
+        .tok-atom { color: #fbbf24; }        /* amber */
+        .tok-kw { color: #c4b5fd; }          /* violet */
+        .tok-comment { color: #94a3b8; font-style: italic; }
         `}
       </style>
 
@@ -156,6 +216,215 @@ export default function ApiDocs() {
                     <strong>Base URL</strong>
                   </p>
                   <CodeBlock lang="bash" code={`https://api.bastion.com/v1`} />
+                </div>
+              </div>
+            </section>
+
+            {/* Section: Update a Claim Status (PATCH /claims/{claim_id}) */}
+            <section id="patch-claims-claim_id" className="scroll-mt-24">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                <div className="md:col-span-5 space-y-3">
+                  <h3 className="text-xl font-semibold text-foreground">Update a Claim Status</h3>
+                  <p>
+                    Merchants use this endpoint to inform Bastion of a dispute’s final outcome. This feedback loop is critical for improving our risk models and the accuracy of the entire network.
+                  </p>
+                  <p className="font-medium text-foreground">Endpoint</p>
+                  <div className="flex items-center gap-2">
+                    <MethodBadge method="PATCH" />
+                    <CodeBlock lang="bash" code={`PATCH /claims/{claim_id}`} />
+                  </div>
+                  <p className="mt-3">
+                    <strong>Request Body</strong> — JSON object with:
+                  </p>
+                  <ul className="list-disc pl-5">
+                    <li><code>status</code> (required): <code>"approved"</code> or <code>"denied"</code></li>
+                    <li><code>reason</code> (optional): free-form internal notes</li>
+                  </ul>
+                </div>
+                <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
+                  <div className="rounded-lg border bg-card p-4 space-y-3">
+                    <Tabs defaultValue="patch-claims-curl">
+                      <TabsList className="flex flex-wrap gap-2">
+                        <TabsTrigger value="patch-claims-curl">Bash</TabsTrigger>
+                        <TabsTrigger value="patch-claims-python">Python</TabsTrigger>
+                        <TabsTrigger value="patch-claims-js">JavaScript</TabsTrigger>
+                        <TabsTrigger value="patch-claims-http">HTTP</TabsTrigger>
+                        <TabsTrigger value="patch-claims-body">JSON</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="patch-claims-curl" className="mt-3">
+                        <CodeBlock
+                          lang="bash"
+                          code={`curl -X PATCH "https://api.bastion.com/v1/claims/7c7dd3c2-7c2e-45db-8a6b-5af7d4a4d8e2" \\\n  -H "X-API-Key: YOUR_SECRET_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n  "status": "approved",\n  "reason": "Evidence provided matched customer receipt; low risk"\n}'`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="patch-claims-python" className="mt-3">
+                        <CodeBlock
+                          lang="python"
+                          code={`import requests\n\napi_key = "YOUR_SECRET_API_KEY"\nheaders = {"X-API-Key": api_key, "Content-Type": "application/json"}\npayload = {"status": "approved", "reason": "Evidence provided matched customer receipt; low risk"}\nresp = requests.patch("https://api.bastion.com/v1/claims/7c7dd3c2-7c2e-45db-8a6b-5af7d4a4d8e2", headers=headers, json=payload)\nprint(resp.status_code)\nprint(resp.json())`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="patch-claims-js" className="mt-3">
+                        <CodeBlock
+                          lang="javascript"
+                          code={`const apiKey = "YOUR_SECRET_API_KEY";\nconst payload = { status: "approved", reason: "Evidence provided matched customer receipt; low risk" };\n\nfetch("https://api.bastion.com/v1/claims/7c7dd3c2-7c2e-45db-8a6b-5af7d4a4d8e2", {\n  method: "PATCH",\n  headers: {\n    "X-API-Key": apiKey,\n    "Content-Type": "application/json"\n  },\n  body: JSON.stringify(payload)\n}).then(r => r.json()).then(console.log);`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="patch-claims-http" className="mt-3">
+                        <CodeBlock
+                          lang="http"
+                          code={`PATCH /v1/claims/7c7dd3c2-7c2e-45db-8a6b-5af7d4a4d8e2 HTTP/1.1\nHost: api.bastion.com\nX-API-Key: YOUR_SECRET_API_KEY\nContent-Type: application/json\n\n{\n  "status": "approved",\n  "reason": "Evidence provided matched customer receipt; low risk"\n}`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="patch-claims-body" className="mt-3">
+                        <div className="text-foreground font-medium">Example Request Body</div>
+                        <CodeBlock
+                          lang="json"
+                          code={`{\n  "status": "denied",\n  "reason": "Multiple inconsistencies found in supporting documentation"\n}`}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                </aside>
+              </div>
+            </section>
+
+            {/* Section: Analytics (GET /analytics/summary) */}
+            <section id="analytics" className="scroll-mt-24">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                <div className="md:col-span-5 space-y-3">
+                  <h3 className="text-xl font-semibold text-foreground">Analytics</h3>
+                  <p>
+                    The Analytics endpoints provide programmatic access to the same aggregated insights available in the Bastion dashboard, helping you monitor trends and inform internal risk operations.
+                  </p>
+                  <p className="font-medium text-foreground">Endpoint</p>
+                  <div className="flex items-center gap-2">
+                    <MethodBadge method="GET" />
+                    <CodeBlock lang="bash" code={`GET /analytics/summary`} />
+                  </div>
+                  <p className="mt-3"><strong>Query Parameters</strong></p>
+                  <ul className="list-disc pl-5">
+                    <li><code>start_date</code> (optional, <code>YYYY-MM-DD</code>) — Inclusive start of the aggregation window</li>
+                    <li><code>end_date</code> (optional, <code>YYYY-MM-DD</code>) — Inclusive end of the aggregation window</li>
+                  </ul>
+                  <p className="mt-3"><strong>Response Object</strong></p>
+                  <ul className="list-disc pl-5">
+                    <li><code>total_claims</code> (number)</li>
+                    <li><code>approval_rate</code> (number, decimal e.g., <code>0.67</code>)</li>
+                    <li><code>denial_rate</code> (number, decimal e.g., <code>0.33</code>)</li>
+                    <li><code>top_disputed_items</code> (array of {`{ name, count, total_value }`})</li>
+                    <li><code>top_disputed_categories</code> (array of {`{ name, count, total_value }`})</li>
+                  </ul>
+                </div>
+                <aside className="md:col-span-7 md:pl-6 md:sticky md:top-16">
+                  <div className="rounded-lg border bg-card p-4 space-y-3">
+                    <Tabs defaultValue="analytics-curl">
+                      <TabsList className="flex flex-wrap gap-2">
+                        <TabsTrigger value="analytics-curl">Bash</TabsTrigger>
+                        <TabsTrigger value="analytics-python">Python</TabsTrigger>
+                        <TabsTrigger value="analytics-js">JavaScript</TabsTrigger>
+                        <TabsTrigger value="analytics-http">HTTP</TabsTrigger>
+                        <TabsTrigger value="analytics-response">JSON</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="analytics-curl" className="mt-3">
+                        <CodeBlock
+                          lang="bash"
+                          code={`curl "https://api.bastion.com/v1/analytics/summary?start_date=2024-01-01&end_date=2024-01-31" \\\n  -H "X-API-Key: YOUR_SECRET_API_KEY"`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="analytics-python" className="mt-3">
+                        <CodeBlock
+                          lang="python"
+                          code={`import requests\n\napi_key = "YOUR_SECRET_API_KEY"\nheaders = {"X-API-Key": api_key}\nurl = "https://api.bastion.com/v1/analytics/summary"\nparams = {"start_date": "2024-01-01", "end_date": "2024-01-31"}\nresp = requests.get(url, headers=headers, params=params)\nprint(resp.json())`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="analytics-js" className="mt-3">
+                        <CodeBlock
+                          lang="javascript"
+                          code={`const apiKey = "YOUR_SECRET_API_KEY";\nconst params = new URLSearchParams({ start_date: "2024-01-01", end_date: "2024-01-31" });\nfetch("https://api.bastion.com/v1/analytics/summary?" + params.toString(), {\n  headers: { "X-API-Key": apiKey }\n}).then(r => r.json()).then(console.log);`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="analytics-http" className="mt-3">
+                        <CodeBlock
+                          lang="http"
+                          code={`GET /v1/analytics/summary?start_date=2024-01-01&end_date=2024-01-31 HTTP/1.1\nHost: api.bastion.com\nX-API-Key: YOUR_SECRET_API_KEY`}
+                        />
+                      </TabsContent>
+                      <TabsContent value="analytics-response" className="mt-3">
+                        <div className="text-foreground font-medium">Example Response (200 OK)</div>
+                        <CodeBlock
+                          lang="json"
+                          code={`{\n  "total_claims": 1245,\n  "approval_rate": 0.61,\n  "denial_rate": 0.39,\n  "top_disputed_items": [\n    { "name": "Noise-Canceling Headphones", "count": 127, "total_value": 25499.00 },\n    { "name": "iPhone 15 Pro", "count": 92, "total_value": 119999.00 },\n    { "name": "Black T-Shirt", "count": 76, "total_value": 2280.00 }\n  ],\n  "top_disputed_categories": [\n    { "name": "Electronics", "count": 411, "total_value": 235000.00 },\n    { "name": "Clothing", "count": 302, "total_value": 18950.00 },\n    { "name": "Accessories", "count": 156, "total_value": 6740.00 }\n  ]\n}`}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                </aside>
+              </div>
+            </section>
+
+            {/* Section: API Best Practices */}
+            <section id="api-best-practices" className="scroll-mt-24">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                <div className="md:col-span-12 space-y-6">
+                  <h3 className="text-xl font-semibold text-foreground">API Best Practices</h3>
+
+                  {/* Sub-section: Pagination */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-foreground">Pagination</h4>
+                    <p>
+                      Endpoints returning lists (for example, a user’s claims) are paginated for consistent performance.
+                    </p>
+                    <ul className="list-disc pl-5">
+                      <li><code>limit</code> (optional): number of items to return (default 25, maximum 100)</li>
+                      <li><code>offset</code> (optional): number of items to skip before starting to return results</li>
+                    </ul>
+                    <div className="rounded-lg border bg-card p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-foreground font-medium">
+                        <Chip label="curl" kind="curl" />
+                      </div>
+                      <CodeBlock
+                        lang="bash"
+                        code={`curl "https://api.bastion.com/v1/claims?limit=25&offset=50" \\\n  -H "X-API-Key: YOUR_SECRET_API_KEY"`}
+                      />
+                      <div className="text-foreground font-medium">Example Response</div>
+                      <CodeBlock
+                        lang="json"
+                        code={`{\n  "data": [\n    { "id": "a1...", "user_id": "u1...", "status": "APPROVED", "created_at": "2024-01-10T12:00:00Z" },\n    { "id": "a2...", "user_id": "u1...", "status": "DENIED",   "created_at": "2024-01-11T09:31:00Z" }\n  ],\n  "pagination": {\n    "total": 245,\n    "limit": 25,\n    "offset": 50\n  }\n}`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sub-section: Rate Limiting */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-foreground">Rate Limiting</h4>
+                    <p>
+                      Our API is rate-limited to 100 requests per minute per API key. If you exceed the limit, we return <code>HTTP 429 Too Many Requests</code>.
+                    </p>
+                    <p>
+                      Each response includes standard rate limit headers: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and <code>X-RateLimit-Reset</code> (UTC epoch timestamp for reset).
+                    </p>
+                    <div className="rounded-lg border bg-card p-4">
+                      <div className="text-foreground font-medium mb-2">Example 429 Response</div>
+                      <CodeBlock lang="json" code={`{\n  "error": "rate_limit_exceeded",\n  "message": "Too many requests. Please retry after the reset time."\n}`} />
+                    </div>
+                  </div>
+
+                  {/* Sub-section: Idempotency */}
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-foreground">Idempotency</h4>
+                    <p>
+                      To safely retry <code>POST</code> requests without creating duplicates, include a unique <code>Idempotency-Key</code> header. If a request with the same key is received again, the API does not re-process the request and returns the original result.
+                    </p>
+                    <div className="rounded-lg border bg-card p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-foreground font-medium">
+                        <Chip label="curl" kind="curl" />
+                      </div>
+                      <CodeBlock
+                        lang="bash"
+                        code={`curl -X POST "https://api.bastion.com/v1/claims" \\\n  -H "X-API-Key: YOUR_SECRET_API_KEY" \\\n  -H "Idempotency-Key: c3b6f9de-3e8b-4f27-adc5-e1b6c9fd2a7c" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "kyc_data": { "full_name": "John Appleseed", "dob": "1990-01-01", "kyc_email": "john.appleseed@icloud.com" },\n    "claim_context": {\n      "store_id": "store_uuid_YOUR_STORE",\n      "email_at_store": "john.a.store@example.com",\n      "claim_data": [\n        { "item_name": "Laptop Sleeve", "category": "Accessories", "price": 49.99, "quantity": 1, "url": "https://yourstore.com/products/sleeve" }\n      ]\n    }\n  }'`}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>

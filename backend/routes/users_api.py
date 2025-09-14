@@ -97,6 +97,93 @@ async def get_users_list(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch users list: {str(e)}")
 
+@router.get("/search")
+async def search_users(
+    q: str = Query(..., min_length=1, description="Search by partial customer ID"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100)
+):
+    """Search users by ID (case-insensitive, partial match) with pagination.
+    Returns the same structure as /list for easy frontend reuse.
+    """
+    supabase = get_supabase_client()
+
+    try:
+        offset = (page - 1) * limit
+
+        # Filtered users page - cast UUID id to text for ILIKE
+        users_response = (
+            supabase
+            .table("users")
+            .select("id, full_name, created_at, risk_score, is_flagged")
+            .filter("id::text", "ilike", f"%{q}%")
+            .range(offset, offset + limit - 1)
+            .execute()
+        )
+
+        # Total count for the same filter
+        count_response = (
+            supabase
+            .table("users")
+            .select("id", count="exact")
+            .filter("id::text", "ilike", f"%{q}%")
+            .execute()
+        )
+        total_users = count_response.count if count_response.count else 0
+
+        users_with_stats = []
+        for user in (users_response.data or []):
+            user_id = user["id"]
+
+            # Try cached risk stats
+            cached_data = await risk_score_cache.get_user_risk_score(user_id)
+            if cached_data:
+                risk_score = cached_data.get("risk_score")
+                is_flagged = cached_data.get("is_flagged", False)
+                total_disputes = cached_data.get("total_claims", 0)
+                pending_disputes = cached_data.get("pending_claims", 0)
+                approved_disputes = cached_data.get("approved_claims", 0)
+                denied_disputes = cached_data.get("denied_claims", 0)
+                claims_response = supabase.table("claims").select("created_at").eq("user_id", user_id).order("created_at", desc=True).limit(1).execute()
+                last_activity = claims_response.data[0]["created_at"] if claims_response.data else None
+            else:
+                # Fallback compute from DB
+                claims_response = supabase.table("claims").select("id, status, created_at").eq("user_id", user_id).execute()
+                claims = claims_response.data if claims_response.data else []
+                risk_score = user["risk_score"] if claims else None
+                is_flagged = user["is_flagged"] if claims else False
+                total_disputes = len(claims)
+                pending_disputes = len([c for c in claims if c["status"] == "PENDING"])
+                approved_disputes = len([c for c in claims if c["status"] == "APPROVED"])
+                denied_disputes = len([c for c in claims if c["status"] == "DENIED"])
+                last_activity = max((claim["created_at"] for claim in claims), default=None) if claims else None
+
+            users_with_stats.append({
+                "id": user_id,
+                "full_name": user["full_name"],
+                "created_at": user["created_at"],
+                "risk_score": risk_score,
+                "is_flagged": is_flagged,
+                "total_disputes": total_disputes,
+                "pending_disputes": pending_disputes,
+                "approved_disputes": approved_disputes,
+                "denied_disputes": denied_disputes,
+                "last_activity": last_activity
+            })
+
+        return {
+            "users": users_with_stats,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total_users,
+                "pages": (total_users + limit - 1) // limit
+            }
+        }
+    except Exception as e:
+        # Return the error message to help diagnose (can be narrowed later)
+        raise HTTPException(status_code=500, detail=f"Failed to search users: {type(e).__name__}: {str(e)}")
+
 @router.get("/{user_id}/details")
 async def get_user_details(user_id: str):
     """Get detailed user information with dispute history"""

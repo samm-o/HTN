@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -93,18 +94,32 @@ export default function UserList() {
     total: 0,
     pages: 0,
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
 
-  // Fetch users from API
+  // Debounce search query
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 350);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Reset pagination and cache when query changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setPreloadedPages(new Map());
+  }, [debouncedQuery]);
+
+  // Fetch users from API (list or search)
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = (await apiClient.getUsersList(
-          currentPage,
-          ITEMS_PER_PAGE
-        )) as any;
+        const response = debouncedQuery
+          ? ((await apiClient.searchUsers(debouncedQuery, currentPage, ITEMS_PER_PAGE)) as any)
+          : ((await apiClient.getUsersList(currentPage, ITEMS_PER_PAGE)) as any);
+
         setUsers(response.users as User[]);
         setPagination(
           response.pagination || {
@@ -123,18 +138,17 @@ export default function UserList() {
     };
 
     fetchUsers();
-  }, [currentPage]);
+  }, [currentPage, debouncedQuery]);
 
-  // Preload next page data
+  // Preload next page data (respects active search query)
   useEffect(() => {
     const preloadNextPage = async () => {
       const nextPage = currentPage + 1;
       if (nextPage <= pagination.pages && !preloadedPages.has(nextPage)) {
         try {
-          const response = (await apiClient.getUsersList(
-            nextPage,
-            ITEMS_PER_PAGE
-          )) as any;
+          const response = debouncedQuery
+            ? ((await apiClient.searchUsers(debouncedQuery, nextPage, ITEMS_PER_PAGE)) as any)
+            : ((await apiClient.getUsersList(nextPage, ITEMS_PER_PAGE)) as any);
           setPreloadedPages((prev) =>
             new Map(prev).set(nextPage, response.users as User[])
           );
@@ -147,7 +161,7 @@ export default function UserList() {
     // Preload after a short delay
     const timer = setTimeout(preloadNextPage, 500);
     return () => clearTimeout(timer);
-  }, [currentPage, pagination.pages, preloadedPages]);
+  }, [currentPage, pagination.pages, preloadedPages, debouncedQuery]);
 
   const handleViewDetails = async (user: User) => {
     try {
@@ -230,7 +244,7 @@ export default function UserList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <h2 className="text-3xl font-bold text-foreground">Customers</h2>
         <div className="text-sm text-muted-foreground">
           Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
@@ -241,12 +255,22 @@ export default function UserList() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-foreground">
-            Customer Database
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Complete list of customers with dispute and approval information
-          </CardDescription>
+          <div className="flex flex-col gap-3 w-full">
+            <div className="flex items-center justify-between gap-4 w-full">
+              <CardTitle className="text-lg font-semibold text-foreground">
+                Customer Database
+              </CardTitle>
+              <Input
+                placeholder="Search by Customer ID"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-64 md:w-80 bg-background border-border focus-visible:ring-primary/40"
+              />
+            </div>
+            <CardDescription className="text-muted-foreground">
+              Complete list of customers with dispute and approval information
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>

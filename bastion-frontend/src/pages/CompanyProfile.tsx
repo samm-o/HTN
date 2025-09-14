@@ -412,7 +412,7 @@ export default function CompanyProfile() {
           </CardHeader>
           <CardContent>
             <div className="h-96">
-              <div className="max-h-80 overflow-y-auto pr-4 space-y-3 px-1 scrollbar-none">
+              <div className="max-h-80 overflow-y-auto pr-3 space-y-3 px-1 thin-scrollbar">
                 {(showAllCategories ? categoryData : categoryData.slice(0, 6)).map((entry, index) => (
                   <div
                     key={index}

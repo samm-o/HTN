@@ -134,6 +134,12 @@ class ApiClient {
     return this.request(`/api/v1/ml-fraud/user/${userId}/risk-profile`);
   }
 
+  // Customer search
+  async searchUsers(query: string, page: number = 1, limit: number = 10) {
+    const params = new URLSearchParams({ q: query, page: String(page), limit: String(limit) });
+    return this.request(`/api/v1/admin/users/search?${params.toString()}`);
+  }
+
   // Health check
   async healthCheck() {
     return this.request('/health');
