@@ -186,8 +186,18 @@ def seed_demo_data():
         users_result = supabase.table('users').insert(users_data).execute()
         print(f"    ✅ Created {len(users_result.data)} users")
         
-        # Insert claims with realistic data
+        # Insert claims with realistic data and staggered dates
         print("  📋 Creating claims...")
+        from datetime import datetime, timedelta
+        
+        # Generate dates over the last 30 days for realistic chart data
+        base_date = datetime.now()
+        date_offsets = [
+            -30, -29, -28, -27, -26, -25, -24, -23, -22, -21,  # Week 1
+            -20, -19, -18, -17, -16, -15, -14, -13, -12, -11,  # Week 2
+            -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0         # Weeks 3-4
+        ]
+        
         claims_data = [
             # Low risk users - approved claims
             {

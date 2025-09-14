@@ -25,7 +25,7 @@ import {
   Cell,
 } from 'recharts';
 import { Tooltip as ReTooltip, Area, Sector } from 'recharts';
-import { ShieldAlert, CheckCircle, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ShieldAlert, CheckCircle, TrendingUp, ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp } from 'lucide-react';
 import CountUp from '@/components/ui/count-up';
 import { SkeletonLoader } from '@/components/ui/skeleton-loader';
 import {
@@ -116,6 +116,7 @@ export default function CompanyProfile() {
   });
   const [error, setError] = useState<string | null>(null);
   const [hoveredCategoryIndex, setHoveredCategoryIndex] = useState<number | null>(null);
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   // Fetch data from API
   useEffect(() => {
@@ -416,7 +417,8 @@ export default function CompanyProfile() {
                 </ResponsiveContainer>
               </div>
               <div className="mt-4 space-y-2">
-                {categoryData.map((entry, index) => (
+                {/* Show first 4 categories by default */}
+                {(showAllCategories ? categoryData : categoryData.slice(0, 4)).map((entry, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between py-1 cursor-pointer rounded hover:bg-slate-800/40 transition-colors"
@@ -437,6 +439,26 @@ export default function CompanyProfile() {
                     </span>
                   </div>
                 ))}
+                
+                {/* Show more/less button if there are more than 4 categories */}
+                {categoryData.length > 4 && (
+                  <button
+                    onClick={() => setShowAllCategories(!showAllCategories)}
+                    className="flex items-center gap-2 w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-slate-800/40"
+                  >
+                    {showAllCategories ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        Show Less ({categoryData.length - 4} hidden)
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        Show More ({categoryData.length - 4} more)
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </CardContent>
