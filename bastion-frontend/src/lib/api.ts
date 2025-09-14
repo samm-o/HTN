@@ -6,7 +6,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://bastion-backe
 // Join base and endpoint safely without double slashes
 const joinUrl = (base: string, endpoint: string) => {
   if (!base) return endpoint; // relative path (proxied in dev)
-  return `${base}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${cleanBase}${cleanEndpoint}`;
 };
 
 // API client with error handling
