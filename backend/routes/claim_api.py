@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
 import uuid
-from datetime import datetime
 
 from schemas.claim_submission import ClaimSubmissionPayload
 from schemas.claim import ClaimResponse
