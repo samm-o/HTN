@@ -11,6 +11,8 @@ import TopCategories from "./pages/TopCategories";
 import Claims from "./pages/Claims";
 import ApiDocs from "./pages/ApiDocs";
 import ApiKeys from "./pages/ApiKeys";
+import Webhooks from "./pages/Webhooks";
+import WebhookDocs from "./pages/WebhookDocs";
 import UserList from "./pages/UserList";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +34,8 @@ const App = () => (
               <Route path="/top-categories" element={<TopCategories />} />
               <Route path="/api-docs" element={<ApiDocs />} />
               <Route path="/api-keys" element={<ApiKeys />} />
+              <Route path="/webhooks" element={<Webhooks />} />
+              <Route path="/webhook-docs" element={<WebhookDocs />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
