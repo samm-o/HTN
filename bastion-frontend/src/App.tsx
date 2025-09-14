@@ -38,6 +38,7 @@ const App = () => (
               <Route path="/webhooks" element={<Webhooks />} />
               <Route path="/webhook-docs" element={<WebhookDocs />} />
               <Route path="/settings" element={<Settings />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </DashboardLayout>

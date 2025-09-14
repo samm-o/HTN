@@ -7,6 +7,7 @@ from crud.crud_claim import ClaimCRUD
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
 
+# Initialize services
 claim_crud = ClaimCRUD()
 
 @router.get("/flagged-claims")

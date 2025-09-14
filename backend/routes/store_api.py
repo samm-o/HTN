@@ -8,6 +8,7 @@ from crud.crud_store import StoreCRUD
 
 router = APIRouter(prefix="/api/v1/stores", tags=["stores"])
 
+# Initialize services
 store_crud = StoreCRUD()
 
 @router.get("", response_model=List[StoreResponse])
