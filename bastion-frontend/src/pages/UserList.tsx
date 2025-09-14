@@ -20,10 +20,10 @@ interface User {
   created_at: string;
   risk_score: number;
   is_flagged: boolean;
-  total_disputes: number;
-  pending_disputes: number;
-  approved_disputes: number;
-  denied_disputes: number;
+  total_claims: number;
+  pending_claims: number;
+  approved_claims: number;
+  denied_claims: number;
   last_activity: string;
 }
 
@@ -68,7 +68,7 @@ export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null);
-  const [disputePage, setDisputePage] = useState(1);
+  const [claimPage, setClaimPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +104,7 @@ export default function UserList() {
     try {
       const userDetails = await apiClient.getUserDetails(user.id);
       setSelectedUser(userDetails as UserDetails);
-      setDisputePage(1);
+      setClaimPage(1);
       setIsModalOpen(true);
     } catch (err) {
       console.error('Failed to fetch user details:', err);
@@ -112,10 +112,10 @@ export default function UserList() {
     }
   };
 
-  const disputeTotalPages = selectedUser ? Math.ceil(selectedUser.claims.length / ITEMS_PER_PAGE) : 0;
-  const disputeStartIndex = (disputePage - 1) * ITEMS_PER_PAGE;
-  const disputeEndIndex = disputeStartIndex + ITEMS_PER_PAGE;
-  const currentDisputes = selectedUser ? selectedUser.claims.slice(disputeStartIndex, disputeEndIndex) : [];
+  const claimTotalPages = selectedUser ? Math.ceil(selectedUser.claims.length / ITEMS_PER_PAGE) : 0;
+  const claimStartIndex = (claimPage - 1) * ITEMS_PER_PAGE;
+  const claimEndIndex = claimStartIndex + ITEMS_PER_PAGE;
+  const currentClaims = selectedUser ? selectedUser.claims.slice(claimStartIndex, claimEndIndex) : [];
 
   if (loading) {
     return (
@@ -146,7 +146,7 @@ export default function UserList() {
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-foreground">User Database</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Complete list of users with dispute and approval information
+            Complete list of users with claim and approval information
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -155,8 +155,8 @@ export default function UserList() {
               <TableRow className="border-border">
                 <TableHead className="text-muted-foreground">User ID</TableHead>
                 <TableHead className="text-muted-foreground">Full Name</TableHead>
-                <TableHead className="text-muted-foreground">Total Disputes</TableHead>
-                <TableHead className="text-muted-foreground">Approved Disputes</TableHead>
+                <TableHead className="text-muted-foreground">Total Claims</TableHead>
+                <TableHead className="text-muted-foreground">Approved Claims</TableHead>
                 <TableHead className="text-muted-foreground">Last Activity</TableHead>
                 <TableHead className="text-muted-foreground">Actions</TableHead>
               </TableRow>
@@ -166,8 +166,8 @@ export default function UserList() {
                 <TableRow key={index} className="border-border">
                   <TableCell className="font-mono text-sm text-foreground">{user.id}</TableCell>
                   <TableCell className="text-foreground">{user.full_name}</TableCell>
-                  <TableCell className="text-foreground">{user.total_disputes}</TableCell>
-                  <TableCell className="text-foreground">{user.approved_disputes}</TableCell>
+                  <TableCell className="text-foreground">{user.total_claims}</TableCell>
+                  <TableCell className="text-foreground">{user.approved_claims}</TableCell>
                   <TableCell className="text-muted-foreground">{user.last_activity ? new Date(user.last_activity).toLocaleDateString() : 'Never'}</TableCell>
                   <TableCell>
                     <Button
@@ -221,7 +221,7 @@ export default function UserList() {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-foreground">User Profile</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Detailed information and dispute history
+              Detailed information and claim history
             </DialogDescription>
           </DialogHeader>
 
@@ -259,7 +259,7 @@ export default function UserList() {
                 </div>
               </div>
 
-              {/* Dispute History */}
+              {/* Claims History */}
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-4">Claims History</h3>
                 {selectedUser.claims.length === 0 && (
@@ -267,7 +267,7 @@ export default function UserList() {
                     No claims history available for this user.
                   </p>
                 )}
-                {currentDisputes.map((claim, index) => (
+                {currentClaims.map((claim, index) => (
                   <div key={index} className="border border-border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -300,14 +300,14 @@ export default function UserList() {
                   </div>
                 ))}
 
-                {/* Pagination for disputes */}
-                {disputeTotalPages > 1 && (
+                {/* Pagination for claims */}
+                {claimTotalPages > 1 && (
                   <div className="flex items-center justify-between mt-4">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setDisputePage(prev => Math.max(prev - 1, 1))}
-                      disabled={disputePage === 1}
+                      onClick={() => setClaimPage(prev => Math.max(prev - 1, 1))}
+                      disabled={claimPage === 1}
                       className="flex items-center gap-2"
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -315,14 +315,14 @@ export default function UserList() {
                     </Button>
                     
                     <span className="text-sm text-muted-foreground">
-                      Page {disputePage} of {disputeTotalPages}
+                      Page {claimPage} of {claimTotalPages}
                     </span>
                     
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setDisputePage(prev => Math.min(prev + 1, disputeTotalPages))}
-                      disabled={disputePage === disputeTotalPages}
+                      onClick={() => setClaimPage(prev => Math.min(prev + 1, claimTotalPages))}
+                      disabled={claimPage === claimTotalPages}
                       className="flex items-center gap-2"
                     >
                       Next
